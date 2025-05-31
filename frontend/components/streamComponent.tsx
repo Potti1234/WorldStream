@@ -164,7 +164,6 @@ const StreamComponent = ({
     <div className='w-full'>
       <video
         id='localVideo'
-        controls
         autoPlay
         muted={true}
         playsInline={true}

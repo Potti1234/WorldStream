@@ -14,9 +14,7 @@ import {
   Send,
   DollarSign,
   Users,
-  MessageCircle,
-  PlayCircle,
-  PauseCircle
+  MessageCircle
 } from 'lucide-react'
 import { Streamer, ChatMessage } from '@/app/types'
 import { StreamViewHeader } from './stream-view-header'
@@ -455,13 +453,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
     }
   }
 
-  const togglePlayPause = () => {
-    if (streamer && streamer.id) {
-      setShouldPlayStream(!shouldPlayStream)
-      if (playbackError && shouldPlayStream) setPlaybackError(null)
-    }
-  }
-
   const CHAT_AREA_TOP_OFFSET = 280
 
   return (
@@ -472,7 +463,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         {isClient && streamer && streamer.id ? (
           <PlayingComponent
             streamIdToPlay={streamer.id}
-            shouldBePlaying={shouldPlayStream}
+            shouldBePlaying={true}
             videoElementId={videoElementId}
             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
           />
@@ -484,20 +475,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
                 : 'No stream selected or stream ID is missing.'}
             </p>
           </div>
-        )}
-        {isClient && streamer && streamer.id && (
-          <Button
-            onClick={togglePlayPause}
-            variant='outline'
-            size='icon'
-            className='absolute bottom-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white z-10'
-          >
-            {isActuallyPlaying ? (
-              <PauseCircle size={24} />
-            ) : (
-              <PlayCircle size={24} />
-            )}
-          </Button>
         )}
         {playbackError && (
           <div className='absolute bottom-10 left-1/2 -translate-x-1/2 bg-red-500 text-white p-2 rounded text-xs z-10'>

@@ -185,7 +185,6 @@ const PlayingComponent = ({
     >
       <video
         id={videoElementId}
-        controls
         autoPlay
         muted={false}
         playsInline={true}
