@@ -1,7 +1,6 @@
 'use client'
 
 import { Users, DollarSign, MessageSquare } from 'lucide-react'
-import { MiniKit } from '@worldcoin/minikit-js'
 import { Button } from '@/components/ui/button'
 
 interface DashboardStatsProps {
@@ -10,6 +9,24 @@ interface DashboardStatsProps {
   recentMessagesCount: number
   isLive: boolean
   onToggleLive: () => void
+}
+
+// Safe function to send haptic feedback only if MiniKit is available
+const sendHapticFeedbackSafe = () => {
+  if (typeof window === 'undefined') return
+
+  try {
+    const { MiniKit } = require('@worldcoin/minikit-js')
+    if (MiniKit && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled()) {
+      MiniKit.commands.sendHapticFeedback({
+        hapticsType: 'impact',
+        style: 'medium',
+      })
+    }
+  } catch (error) {
+    // Silently ignore if MiniKit is not available
+    console.debug('MiniKit haptic feedback not available:', error)
+  }
 }
 
 export function DashboardStats ({
@@ -22,14 +39,8 @@ export function DashboardStats ({
   const handleToggleClick = () => {
     onToggleLive()
     
-    try {
-      MiniKit.commands.sendHapticFeedback({
-        hapticsType: 'impact',
-        style: 'medium',
-      })
-    } catch (error) {
-      console.error('Failed to trigger haptic feedback:', error)
-    }
+    // Safely send haptic feedback if available
+    sendHapticFeedbackSafe()
   }
   return (
     <div className='p-4 border-b border-gray-200'>
