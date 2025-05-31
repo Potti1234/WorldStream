@@ -97,7 +97,7 @@ export default function App () {
     try {
       await fetchStreams()
     } catch (error) {
-      console.error('Failed to refresh streams:', error)
+      clientLogger.error('Failed to refresh streams', { error }, 'App')
     } finally {
       setIsRefreshing(false)
     }
@@ -131,7 +131,7 @@ export default function App () {
           await fetchStreams()
           console.debug('Auto-refreshed stream list', 'App')
         } catch (error) {
-          console.error('Auto-refresh failed:', error)
+          clientLogger.error('Auto-refresh failed', { error }, 'App')
         }
       }, 1000)
     }
