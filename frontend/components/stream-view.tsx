@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -426,16 +427,26 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
     activeStreamId: string | null
   ) => {
     setIsActuallyPlaying(isActuallyPlayingUpdate)
-    console.log(
-      `StreamView: Playback status: ${isActuallyPlayingUpdate}, Stream ID: ${activeStreamId}`
-    )
+    
+    clientLogger.debug('Playback status updated', {
+      isActuallyPlaying: isActuallyPlayingUpdate,
+      activeStreamId,
+      streamerId: streamer.id,
+      hasError: !!playbackError
+    }, 'StreamView')
+    
     if (
       !isActuallyPlayingUpdate &&
       activeStreamId &&
       streamer.id === activeStreamId
     ) {
       if (!playbackError) {
-        setPlaybackError('Stream ended or is unavailable.')
+        const errorMessage = 'Stream ended or is unavailable.'
+        clientLogger.warn('Playback error', { 
+          message: errorMessage,
+          streamId: activeStreamId 
+        }, 'StreamView')
+        setPlaybackError(errorMessage)
       }
     } else if (isActuallyPlayingUpdate) {
       setPlaybackError(null)

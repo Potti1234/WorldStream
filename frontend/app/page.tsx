@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import { StreamerList } from '@/components/streamer-list'
 import { StreamView } from '@/components/stream-view'
 import { StreamerDashboard } from '@/components/streamer-dashboard'
@@ -336,7 +337,7 @@ export default function App () {
       setLiveStreams(transformedStreams)
     } else {
       setLiveStreams([])
-      console.log('No live streams fetched from API or API error.')
+      clientLogger.info('No live streams fetched from API or API error', {}, 'fetchStreams')
     }
   }
 
@@ -356,7 +357,7 @@ export default function App () {
     // Safely check MiniKit support
     const isWorldApp = checkMiniKitSupport()
     console.log('Opened in World App?', isWorldApp)
-
+    
     const initializeStreams = async () => {
       setIsLoadingStreams(true)
       await fetchStreams()
@@ -377,7 +378,7 @@ export default function App () {
       intervalId = setInterval(async () => {
         try {
           await fetchStreams()
-          console.log('Auto-refreshed stream list')
+          clientLogger.debug('Auto-refreshed stream list', {}, 'App')
         } catch (error) {
           console.error('Auto-refresh failed:', error)
         }

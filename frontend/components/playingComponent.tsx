@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import { WebRTCAdaptor } from '@antmedia/webrtc_adaptor'
 
 interface PlayingComponentProps {
@@ -46,7 +47,7 @@ const PlayingComponent = ({
       streamIdToPlayRef.current &&
       !isActuallyPlaying
     ) {
-      console.log('Attempting to play stream:', streamIdToPlayRef.current)
+      clientLogger.debug('Attempting to play stream', { streamId: streamIdToPlayRef.current }, 'PlayingComponent')
       currentPlayingStreamId.current = streamIdToPlayRef.current
       webRTCAdaptor.current.play(
         streamIdToPlayRef.current,
@@ -55,20 +56,22 @@ const PlayingComponent = ({
         []
       )
     } else {
-      console.warn(
-        'Cannot play: WebRTC Adaptor not ready, websocket not connected, streamId not provided, or already playing.'
-      )
+      clientLogger.warn('Cannot play stream', { 
+        reason: 'WebRTC Adaptor not ready, websocket not connected, no stream ID, or already playing',
+        isReady: !!webRTCAdaptor.current,
+        isConnected: websocketConnected,
+        hasStreamId: !!streamIdToPlayRef.current,
+        isPlaying: isActuallyPlaying
+      }, 'PlayingComponent')
     }
   }, [websocketConnected, isActuallyPlaying])
 
   const internalHandleStop = useCallback(() => {
     if (webRTCAdaptor.current && currentPlayingStreamId.current) {
-      console.log('Attempting to stop stream:', currentPlayingStreamId.current)
+      clientLogger.debug('Attempting to stop stream', { streamId: currentPlayingStreamId.current }, 'PlayingComponent')
       webRTCAdaptor.current.stop(currentPlayingStreamId.current)
     } else {
-      console.warn(
-        'Cannot stop: WebRTC Adaptor not ready or no stream ID to stop.'
-      )
+      clientLogger.warn('No active stream to stop or already stopped', {}, 'PlayingComponent')
     }
   }, [])
 
@@ -118,17 +121,20 @@ const PlayingComponent = ({
               obj?.streamId || currentPlayingStreamId.current
             currentPlayingStreamId.current = playedStreamId
             onPlaybackStatusUpdateRef.current?.(true, playedStreamId)
-            console.log('Playback started for stream:', playedStreamId)
+            clientLogger.info('Playback started', { streamId: playedStreamId }, 'PlayingComponent')
           } else if (info === 'play_finished') {
             setIsActuallyPlaying(false)
             const finishedStreamId = currentPlayingStreamId.current
             currentPlayingStreamId.current = null
             onPlaybackStatusUpdateRef.current?.(false, finishedStreamId)
-            console.log('Playback finished for stream:', finishedStreamId)
+            clientLogger.info('Playback finished', { streamId: finishedStreamId }, 'PlayingComponent')
           }
         },
         callbackError: (error: any, message: any) => {
-          console.error('PlayingComponent Error:', error, 'Message:', message)
+          clientLogger.error('Playback error', { 
+            error: error ? JSON.stringify(error) : 'No error object',
+            message: message || 'No message'
+          }, 'PlayingComponent')
           const erroredStreamId = currentPlayingStreamId.current
           setIsActuallyPlaying(false)
           currentPlayingStreamId.current = null
@@ -138,9 +144,9 @@ const PlayingComponent = ({
             error.indexOf('NotFoundError') !== -1 ||
             error.indexOf('no_active_streams_found') !== -1
           ) {
-            console.warn(
-              `Stream ${erroredStreamId} does not exist or has ended.`
-            )
+            clientLogger.warn('Stream not found on server', { 
+              streamId: streamIdToPlayRef.current 
+            }, 'PlayingComponent')
           }
         }
       })
@@ -149,13 +155,13 @@ const PlayingComponent = ({
     return () => {
       if (webRTCAdaptor.current) {
         if (currentPlayingStreamId.current) {
-          console.log(
-            'PlayingComponent unmounting, stopping stream:',
-            currentPlayingStreamId.current
-          )
+          clientLogger.debug('Playback status updated', { 
+            isActuallyPlaying, 
+            activeStreamId: currentPlayingStreamId.current 
+          }, 'PlayingComponent')  
           webRTCAdaptor.current.stop(currentPlayingStreamId.current)
         }
-        console.log('PlayingComponent unmounted or videoElementId changed.')
+        clientLogger.debug('PlayingComponent unmounted or videoElementId changed.', {}, 'PlayingComponent')
       }
     }
   }, [])

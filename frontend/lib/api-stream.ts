@@ -1,5 +1,6 @@
 "use client"
 
+import { clientLogger } from '@/lib/client-logger';
 import pb from '@/lib/pocketbase';
 
 export interface Stream {
@@ -14,7 +15,7 @@ export const createStream = async (streamId: string): Promise<Stream | null> => 
     const record = await pb.collection('stream').create<Stream>(data);
     return record;
   } catch (error) {
-    console.error('Failed to create stream:', error);
+    clientLogger.error('Failed to create stream', { error }, 'createStream');
     return null;
   }
 };
@@ -27,20 +28,20 @@ export const deleteStream = async (streamId: string): Promise<boolean> => {
     });
 
     if (records.length === 0) {
-      console.warn(`Stream with streamId "${streamId}" not found.`);
+      clientLogger.warn('Stream not found', { streamId }, 'deleteStream');
       return false;
     }
 
     // Assuming streamId is unique, there should be at most one record
     const recordToDelete = records[0];
     if (!recordToDelete.id) {
-        console.error('Record ID is undefined, cannot delete.');
+        clientLogger.error('Record ID is undefined, cannot delete', {}, 'deleteStream');
         return false;
     }
     await pb.collection('stream').delete(recordToDelete.id);
     return true;
   } catch (error) {
-    console.error('Failed to delete stream:', error);
+    clientLogger.error('Failed to delete stream', { error }, 'deleteStream');
     return false;
   }
 }; 
@@ -50,7 +51,7 @@ export const getAllStreams = async (): Promise<Stream[]> => {
     const records = await pb.collection('stream').getFullList<Stream>();
     return records;
   } catch (error) {
-    console.error('Failed to get all streams:', error);
+    clientLogger.error('Failed to get all streams', { error }, 'getAllStreams');
     return [];
   }
 };
