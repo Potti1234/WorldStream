@@ -253,38 +253,54 @@ export default function App () {
   const [appMode, setAppMode] = useState<'viewer' | 'streamer'>('viewer')
   const [liveStreams, setLiveStreams] = useState<Streamer[]>([])
   const [isLoadingStreams, setIsLoadingStreams] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const fetchStreams = async () => {
+    const apiStreams: ApiStream[] = await getAllStreams()
+    if (apiStreams && apiStreams.length > 0) {
+      const transformedStreams: Streamer[] = apiStreams.map(
+        (apiStream, index) => ({
+          id: apiStream.streamId, // Use actual stream ID from API
+          name: generateDisplayName(apiStream.streamId, index),
+          avatar: `https://ui-avatars.com/api/?name=S${index + 1}&background=random&color=fff&size=40`,
+          title: `Stream ${index + 1}`,
+          category: 'Live Stream',
+          viewers: Math.floor(Math.random() * 5000) + 100,
+          isLive: true,
+          thumbnail: `https://ams-30774.antmedia.cloud:5443/LiveApp/previews/${apiStream.streamId}.png?t=${Date.now()}`
+        })
+      )
+      setLiveStreams(transformedStreams)
+    } else {
+      setLiveStreams([])
+      console.log('No live streams fetched from API or API error.')
+    }
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await fetchStreams()
+    } catch (error) {
+      console.error('Failed to refresh streams:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   useEffect(() => {
     // Safely check MiniKit support
     const isWorldApp = checkMiniKitSupport();
     console.log('Opened in World App?', isWorldApp);
     
-    const fetchStreams = async () => {
+    const initializeStreams = async () => {
       setIsLoadingStreams(true)
-      const apiStreams: ApiStream[] = await getAllStreams()
-      if (apiStreams && apiStreams.length > 0) {
-        const transformedStreams: Streamer[] = apiStreams.map(
-          (apiStream, index) => ({
-            id: apiStream.streamId, // Use actual stream ID from API
-            name: generateDisplayName(apiStream.streamId, index),
-            avatar: `https://ui-avatars.com/api/?name=S${index + 1}&background=random&color=fff&size=40`,
-            title: `Stream ${index + 1}`,
-            category: 'Live Stream',
-            viewers: Math.floor(Math.random() * 5000) + 100,
-            isLive: true,
-            thumbnail: `https://ams-30774.antmedia.cloud:5443/LiveApp/previews/${apiStream.streamId}.png?t=${Date.now()}`
-          })
-        )
-        setLiveStreams(transformedStreams)
-      } else {
-        setLiveStreams([])
-        console.log('No live streams fetched from API or API error.')
-      }
+      await fetchStreams()
       setIsLoadingStreams(false)
     }
 
     if (appMode === 'viewer') {
-      fetchStreams()
+      initializeStreams()
     }
   }, [appMode])
 
@@ -318,6 +334,8 @@ export default function App () {
             streamers={liveStreams}
             onSelectStreamer={handleSelectStreamer}
             onToggleAppMode={toggleAppMode}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
             appMode={appMode}
           />
         ) : (
