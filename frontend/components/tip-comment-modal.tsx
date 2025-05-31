@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { MiniKit } from '@worldcoin/minikit-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { ChatMessage } from '@/app/types'
@@ -26,6 +27,11 @@ export function TipCommentModal ({
     if (!commentTipAmount) return
     const amount = Number.parseFloat(commentTipAmount)
     if (isNaN(amount) || amount <= 0) return
+
+    MiniKit.commands.sendHapticFeedback({
+      hapticsType: 'impact',
+      style: 'medium',
+    })
 
     onSubmitTip(selectedMessage.id, commentTipAmount)
     setCommentTipAmount('')
