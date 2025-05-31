@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "@worldcoin/minikit-js/style.css";
 import "./globals.css";
+import { clientLogger } from "@/lib/client-logger";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +33,7 @@ function ConditionalMiniKitProvider({ children }: { children: React.ReactNode })
         return <MiniKitProvider>{children}</MiniKitProvider>;
       }
     } catch (error) {
-      console.log('MiniKit not available:', error);
+      clientLogger.debug('MiniKit not available', { error }, 'MiniKitProvider');
     }
   }
   
