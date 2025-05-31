@@ -38,7 +38,7 @@ export function StreamerListHeader ({
                 onClick={onToggleAppMode}
                 variant='outline'
                 size='icon'
-                className='rounded-full bg-red-50 border-red-200 hover:bg-red-100'
+                className='rounded-full bg-red-50 border-red-200 hover:bg-red-100 mr-2'
                 aria-label='Switch to Streamer Mode'
               >
                 <Video className='h-5 w-5 text-red-500' />
@@ -60,7 +60,7 @@ export function StreamerListHeader ({
         <Input
           type='text'
           placeholder='Search streamers, titles, categories...'
-          className='pl-10 pr-10' // Added pr-10 for clear button spacing
+          className='pl-10 pr-10'
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
