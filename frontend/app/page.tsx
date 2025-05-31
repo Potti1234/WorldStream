@@ -230,7 +230,7 @@ const generateDisplayName = (streamId: string, index: number) => {
   ];
   
   const baseName = streamNames[index % streamNames.length] || `Streamer${index + 1}`;
-  return `${baseName} (${streamId.substring(0, 6)})`;
+  return baseName; // Remove the stream ID suffix
 };
 
 // Function to safely check MiniKit availability
