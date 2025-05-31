@@ -109,7 +109,7 @@ export function ChatMessageList ({
     <ScrollArea
       ref={scrollAreaRef}
       className='flex-1 p-3'
-      style={{ paddingBottom: `${inputAreaHeight + 12}px` }}
+      style={{ paddingBottom: `${inputAreaHeight + 52}px` }}
       // Optionally, add onScroll to update isAtBottomRef if user scrolls manually
       onScroll={event => {
         const target = event.currentTarget as HTMLElement

@@ -64,7 +64,7 @@ export function ChatInputArea ({
   return (
     <div
       ref={inputAreaRef}
-      className='fixed bottom-6 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 p-3 z-20'
+      className='fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 pb-8 p-3 z-20'
 
     >
       {showTipInput && (
