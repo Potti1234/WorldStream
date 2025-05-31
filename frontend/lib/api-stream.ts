@@ -44,3 +44,13 @@ export const deleteStream = async (streamId: string): Promise<boolean> => {
     return false;
   }
 }; 
+
+export const getAllStreams = async (): Promise<Stream[]> => {
+  try {
+    const records = await pb.collection('stream').getFullList<Stream>();
+    return records;
+  } catch (error) {
+    console.error('Failed to get all streams:', error);
+    return [];
+  }
+};
