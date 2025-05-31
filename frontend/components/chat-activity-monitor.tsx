@@ -10,7 +10,6 @@ import { DollarSign, Trash2, Ban, MoreVertical } from 'lucide-react'
 import { DashboardMessage } from '@/app/types'
 import {
   getAllMessagesForStream,
-  subscribeToMessages,
   Message as ApiMessage
 } from '@/lib/api-message'
 
@@ -54,11 +53,18 @@ export function ChatActivityMonitor ({
     DashboardMessage[]
   >([])
 
-  // Fetch initial messages
+  // Polling for messages
   useEffect(() => {
-    if (!streamId) return
+    if (!streamId || !chatEnabled) {
+      // Stop polling if chat is disabled
+      setDashboardMessages([]) // Clear messages
+      return
+    }
 
     const fetchMessages = async () => {
+      console.log(
+        `[Polling CAM] Fetching messages for stream DB ID: ${streamId}`
+      )
       const initialApiMessages = await getAllMessagesForStream(streamId)
       const mappedMessages = initialApiMessages.map(
         mapApiMessageToDashboardMessage
@@ -71,52 +77,16 @@ export function ChatActivityMonitor ({
       setDashboardMessages(mappedMessages)
     }
 
-    fetchMessages()
-  }, [streamId])
+    fetchMessages() // Initial fetch
+    const intervalId = setInterval(fetchMessages, 2000) // Poll every 2 seconds
 
-  // Subscribe to new messages - UPDATED FOR ASYNC SUBSCRIBE
-  useEffect(() => {
-    if (!streamId) return
-
-    let unsubscribe: (() => void) | null = null
-
-    const setupSubscription = async () => {
-      try {
-        unsubscribe = await subscribeToMessages(streamId, newApiMessage => {
-          setDashboardMessages(prevMessages => {
-            const newMappedMessage =
-              mapApiMessageToDashboardMessage(newApiMessage)
-            const updatedMessages = [newMappedMessage, ...prevMessages]
-            return updatedMessages
-          })
-        })
-      } catch (error) {
-        clientLogger.error(
-          'Error setting up message subscription in ChatActivityMonitor',
-          { error },
-          'ChatActivityMonitor'
-        )
-      }
-    }
-
-    setupSubscription()
-
-    // Return cleanup function
     return () => {
-      if (unsubscribe) {
-        console.log(
-          '[ChatActivityMonitor] Cleaning up subscription for streamId:',
-          streamId
-        )
-        unsubscribe()
-      } else {
-        console.log(
-          '[ChatActivityMonitor] No unsubscribe function available on cleanup for streamId:',
-          streamId
-        )
-      }
+      console.log(
+        `[Polling CAM] Clearing interval for stream DB ID: ${streamId}`
+      )
+      clearInterval(intervalId)
     }
-  }, [streamId])
+  }, [streamId, chatEnabled]) // Re-run if streamId or chatEnabled changes
 
   const toggleMenu = (messageId: string) => {
     setOpenMenuId(openMenuId === messageId ? null : messageId)

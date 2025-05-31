@@ -9,36 +9,34 @@ import { DollarSign } from 'lucide-react'
 import type { ChatMessage } from '@/app/types'
 import {
   getAllMessagesForStream,
-  subscribeToMessages,
-  createMessage, // Added for completeness, though not directly used for sending here
+  // subscribeToMessages, // No longer used for polling display
+  // unsubscribeFromMessages, // No longer used for polling display
   Message as ApiMessage
-} from '@/lib/api-message' // Assuming api-message.ts is in lib
+} from '@/lib/api-message'
 
 interface ChatMessageListProps {
-  // messages: ChatMessage[] // Will be managed internally now
   inputAreaHeight: number
   handleTipComment: (message: ChatMessage) => void
-  streamId: string | undefined // Changed to allow undefined, as it comes from currentApiStream?.id
+  streamId: string | undefined // Database ID of the stream
 }
 
-// Helper function to map API message to ChatMessage
 const mapApiMessageToChatMessage = (apiMsg: ApiMessage): ChatMessage => ({
-  id: apiMsg.id || `mock-${Date.now()}-${Math.random()}`, // Ensure ID is a string and unique
+  id: apiMsg.id || `mock-${Date.now()}-${Math.random()}`,
   username: `User${
     apiMsg.id ? apiMsg.id.slice(-2) : Math.floor(Math.random() * 100)
-  }`, // Mock username
+  }`,
   message: apiMsg.text,
   timestamp: apiMsg.created
     ? new Date(apiMsg.created).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit'
       })
-    : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Mock timestamp
-  isTip: false, // Mock data
-  tipAmount: undefined, // Mock data
-  tipsReceived: [], // Mock data
-  streamerTip: undefined, // Mock data
-  isStreamerTip: false // Mock data
+    : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  isTip: false,
+  tipAmount: undefined,
+  tipsReceived: [],
+  streamerTip: undefined,
+  isStreamerTip: false
 })
 
 export function ChatMessageList ({
@@ -47,85 +45,81 @@ export function ChatMessageList ({
   streamId
 }: ChatMessageListProps) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
-  const scrollAreaRef = useRef<HTMLDivElement>(null) // Ref for ScrollArea's viewport
+  const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const isAtBottomRef = useRef(true) // Ref to track if user is at the bottom
 
-  // Effect to scroll to bottom when new messages are added
+  // Effect to scroll to bottom ONLY if the user was already at the bottom
   useEffect(() => {
     if (scrollAreaRef.current) {
-      // The actual scrollable element might be a child of the ScrollArea component.
-      // We might need to find it. For Radix UI's ScrollArea, it's usually the first child.
       const viewport = scrollAreaRef.current.querySelector(
         '[data-radix-scroll-area-viewport]'
-      )
+      ) as HTMLElement
       if (viewport) {
-        viewport.scrollTop = viewport.scrollHeight
+        if (isAtBottomRef.current) {
+          viewport.scrollTop = viewport.scrollHeight
+        }
       } else {
-        // Fallback if the specific selector isn't found
-        scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+        // Fallback for non-Radix or if viewport not found
+        if (isAtBottomRef.current) {
+          scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight
+        }
       }
     }
   }, [chatMessages])
 
-  // Fetch initial messages
+  // Polling for messages
   useEffect(() => {
-    if (!streamId) return
+    if (!streamId) {
+      setChatMessages([]) // Clear messages if no streamId
+      return
+    }
 
     const fetchMessages = async () => {
+      console.log(`[Polling] Fetching messages for stream DB ID: ${streamId}`)
       const initialApiMessages = await getAllMessagesForStream(streamId)
       const mappedMessages = initialApiMessages.map(mapApiMessageToChatMessage)
+
+      // Preserve scroll position logic
+      const viewport = scrollAreaRef.current?.querySelector(
+        '[data-radix-scroll-area-viewport]'
+      ) as HTMLElement
+      if (viewport) {
+        const { scrollTop, scrollHeight, clientHeight } = viewport
+        // Consider at bottom if within a small threshold
+        isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 50
+      } else {
+        isAtBottomRef.current = true // Default to true if viewport not found
+      }
+
       setChatMessages(mappedMessages)
     }
 
-    fetchMessages()
-  }, [streamId])
+    fetchMessages() // Initial fetch
+    const intervalId = setInterval(fetchMessages, 2000) // Poll every 2 seconds
 
-  // Subscribe to new messages - UPDATED FOR ASYNC SUBSCRIBE
-  useEffect(() => {
-    if (!streamId) return
-
-    let unsubscribe: (() => void) | null = null
-
-    const setupSubscription = async () => {
-      try {
-        unsubscribe = await subscribeToMessages(streamId, newApiMessage => {
-          setChatMessages(prevMessages => [
-            ...prevMessages,
-            mapApiMessageToChatMessage(newApiMessage)
-          ])
-        })
-      } catch (error) {
-        clientLogger.error(
-          'Error setting up message subscription in ChatMessageList',
-          { error },
-          'ChatMessageList'
-        )
-      }
-    }
-
-    setupSubscription()
-
-    // Return cleanup function
     return () => {
-      if (unsubscribe) {
-        console.log(
-          '[ChatMessageList] Cleaning up subscription for streamId:',
-          streamId
-        )
-        unsubscribe()
-      } else {
-        console.log(
-          '[ChatMessageList] No unsubscribe function available on cleanup for streamId:',
-          streamId
-        )
-      }
+      console.log(`[Polling] Clearing interval for stream DB ID: ${streamId}`)
+      clearInterval(intervalId)
     }
   }, [streamId])
+
+  // Removed the useEffect for subscribeToMessages/unsubscribeFromMessages as polling is now used for display
 
   return (
     <ScrollArea
-      ref={scrollAreaRef} // Assign ref here
+      ref={scrollAreaRef}
       className='flex-1 p-3'
       style={{ paddingBottom: `${inputAreaHeight + 12}px` }}
+      // Optionally, add onScroll to update isAtBottomRef if user scrolls manually
+      onScroll={event => {
+        const target = event.currentTarget as HTMLElement
+        const viewport =
+          (target.querySelector(
+            '[data-radix-scroll-area-viewport]'
+          ) as HTMLElement) || target
+        const { scrollTop, scrollHeight, clientHeight } = viewport
+        isAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 50
+      }}
     >
       <div className='space-y-3 pr-4'>
         {chatMessages.map(msg => (
@@ -133,7 +127,7 @@ export function ChatMessageList ({
             key={msg.id}
             className={`flex gap-2 text-sm ${
               msg.tipsReceived && msg.tipsReceived.length > 0
-                ? msg.username === 'You' // This logic might need adjustment as "You" is mocked
+                ? msg.username === 'You'
                   ? 'bg-green-50 border border-green-200 rounded-lg p-2 -m-1'
                   : 'bg-blue-50/50 border-l-2 border-blue-200 pl-3 py-1 -ml-1'
                 : msg.streamerTip
@@ -173,10 +167,8 @@ export function ChatMessageList ({
               </div>
               <p className='text-sm leading-relaxed'>{msg.message}</p>
 
-              {/* Show tips received */}
               {msg.tipsReceived && msg.tipsReceived.length > 0 && (
                 <div className='mt-2 space-y-1'>
-                  {/* Tip Summary */}
                   <div className='flex items-center gap-2'>
                     <Badge
                       variant='default'
@@ -198,7 +190,6 @@ export function ChatMessageList ({
                     </Badge>
                   </div>
 
-                  {/* Individual Tips */}
                   <div className='flex flex-wrap gap-1'>
                     {msg.tipsReceived.map((tip, i) => (
                       <Badge
@@ -215,8 +206,6 @@ export function ChatMessageList ({
               )}
             </div>
 
-            {/* Only show tip button for others' messages */}
-            {/* This logic might need adjustment as "You" and "System" are mocked */}
             {msg.username !== 'You' &&
               msg.username !== 'System' &&
               !msg.isStreamerTip && (
