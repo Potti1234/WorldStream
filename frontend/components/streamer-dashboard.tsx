@@ -310,6 +310,17 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         <div className='text-sm text-gray-500 mb-1'>Stream Title</div>
         <div className='text-sm font-medium'>{streamTitle}</div>
       </div>
+
+      {/* Stream Component */}
+      {isClient && (
+        <div className='p-4 border-b border-gray-200'>
+          <StreamComponent
+            streamIdToUse={streamIdForComponent}
+            initiateStream={isLive}
+            onStreamStatusUpdate={handleStreamStatusUpdate}
+          />
+        </div>
+      )}
       
       <DashboardStats
         viewerCount={viewerCount}
