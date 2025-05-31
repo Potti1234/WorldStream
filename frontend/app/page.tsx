@@ -220,6 +220,19 @@ const generateRandomStreamId = () => {
   return result
 }
 
+// Function to generate display name for streamers
+const generateDisplayName = (streamId: string, index: number) => {
+  const streamNames = [
+    'GamerPro', 'StreamQueen', 'PixelMaster', 'CodeWizard', 'MusicVibes',
+    'ArtisticSoul', 'TechGuru', 'FitnessHero', 'CookingChef', 'TravelBug',
+    'BookWorm', 'ComedyKing', 'MovieBuff', 'ScienceGeek', 'CryptoExpert',
+    'PetLover', 'FashionIcon', 'DIYMaster', 'ZenMaster', 'HistoryFan'
+  ];
+  
+  const baseName = streamNames[index % streamNames.length] || `Streamer${index + 1}`;
+  return `${baseName} (${streamId.substring(0, 6)})`;
+};
+
 // Function to safely check MiniKit availability
 const checkMiniKitSupport = () => {
   if (typeof window === 'undefined') return false;
@@ -251,19 +264,16 @@ export default function App () {
       const apiStreams: ApiStream[] = await getAllStreams()
       if (apiStreams && apiStreams.length > 0) {
         const transformedStreams: Streamer[] = apiStreams.map(
-          (apiStream, index) => {
-            const randomStreamId = generateRandomStreamId()
-            return {
-              id: randomStreamId,
-              name: `Streamer ${index + 1} (${randomStreamId.substring(0, 6)})`,
-              avatar: `https://ui-avatars.com/api/?name=S${index + 1}&background=random&color=fff&size=40`,
-              title: `Stream ${index + 1}`,
-              category: 'Live Stream',
-              viewers: Math.floor(Math.random() * 5000) + 100,
-              isLive: true,
-              thumbnail: `https://ams-30774.antmedia.cloud:5443/LiveApp/previews/${randomStreamId}.png?t=${Date.now()}`
-            }
-          }
+          (apiStream, index) => ({
+            id: apiStream.streamId, // Use actual stream ID from API
+            name: generateDisplayName(apiStream.streamId, index),
+            avatar: `https://ui-avatars.com/api/?name=S${index + 1}&background=random&color=fff&size=40`,
+            title: `Stream ${index + 1}`,
+            category: 'Live Stream',
+            viewers: Math.floor(Math.random() * 5000) + 100,
+            isLive: true,
+            thumbnail: `https://ams-30774.antmedia.cloud:5443/LiveApp/previews/${apiStream.streamId}.png?t=${Date.now()}`
+          })
         )
         setLiveStreams(transformedStreams)
       } else {
