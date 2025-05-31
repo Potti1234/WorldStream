@@ -1,6 +1,7 @@
 'use client'
 
 import { Users, DollarSign, MessageSquare } from 'lucide-react'
+import { MiniKit } from '@worldcoin/minikit-js'
 import { Button } from '@/components/ui/button'
 
 interface DashboardStatsProps {
@@ -18,6 +19,18 @@ export function DashboardStats ({
   isLive,
   onToggleLive
 }: DashboardStatsProps) {
+  const handleToggleClick = () => {
+    onToggleLive()
+    
+    try {
+      MiniKit.commands.sendHapticFeedback({
+        hapticsType: 'impact',
+        style: 'medium',
+      })
+    } catch (error) {
+      console.error('Failed to trigger haptic feedback:', error)
+    }
+  }
   return (
     <div className='p-4 border-b border-gray-200'>
       <div className='grid grid-cols-3 gap-4 mb-4'>
@@ -49,7 +62,7 @@ export function DashboardStats ({
       {/* End Stream Button */}
       <div className='flex justify-center'>
         <Button
-          onClick={onToggleLive}
+          onClick={handleToggleClick}
           variant={isLive ? 'destructive' : 'default'}
           className='w-48 rounded-full'
           size='lg'
