@@ -39,7 +39,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   const [isLive, setIsLive] = useState(false)
   const [actuallyStreaming, setActuallyStreaming] = useState(false)
   const [streamIdForComponent, setStreamIdForComponent] = useState(
-    'streamerDashboardStream'
+    'streamerDashboardStream' + Math.random().toString(36).substring(2, 15)
   )
   const [streamTitle, setStreamTitle] = useState(
     'Epic Valorant Ranked Climb! Road to Radiant 🔥'

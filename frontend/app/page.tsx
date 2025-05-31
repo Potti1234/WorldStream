@@ -288,6 +288,7 @@ export default function App () {
     }
   }
 
+  // Initial load effect
   useEffect(() => {
     // Safely check MiniKit support
     const isWorldApp = checkMiniKitSupport();
@@ -303,6 +304,30 @@ export default function App () {
       initializeStreams()
     }
   }, [appMode])
+
+  // Auto-refresh effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null
+
+    if (appMode === 'viewer' && !isLoadingStreams) {
+      // Start auto-refresh every second
+      intervalId = setInterval(async () => {
+        try {
+          await fetchStreams()
+          console.log('Auto-refreshed stream list')
+        } catch (error) {
+          console.error('Auto-refresh failed:', error)
+        }
+      }, 1000)
+    }
+
+    // Cleanup interval on unmount or mode change
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
+    }
+  }, [appMode, isLoadingStreams])
 
   const handleSelectStreamer = (streamer: Streamer) => {
     setSelectedStreamer(streamer)
