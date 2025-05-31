@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { MiniKit } from '@worldcoin/minikit-js';
 import { StreamerList } from '@/components/streamer-list'
 import { StreamView } from '@/components/stream-view'
 import { StreamerDashboard } from '@/components/streamer-dashboard'
@@ -219,6 +220,7 @@ export default function App () {
   const [isLoadingStreams, setIsLoadingStreams] = useState(true)
 
   useEffect(() => {
+    console.log('Opened in World App?', MiniKit.isInstalled());
     const fetchStreams = async () => {
       setIsLoadingStreams(true)
       const apiStreams: ApiStream[] = await getAllStreams()
