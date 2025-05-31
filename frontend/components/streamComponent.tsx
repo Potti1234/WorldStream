@@ -176,16 +176,6 @@ const StreamComponent = ({
           backgroundColor: '#000'
         }}
       ></video>
-      {websocketConnected ? (
-        <p className='text-xs text-green-500 mt-1'>Websocket Connected</p>
-      ) : (
-        <p className='text-xs text-red-500 mt-1'>Websocket Disconnected</p>
-      )}
-      {publishing && (
-        <p className='text-xs text-blue-500 mt-1'>
-          Streaming Live (ID: {publishingStream.current || 'N/A'})
-        </p>
-      )}
     </div>
   )
 }
