@@ -298,66 +298,26 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   }
 
   return (
-    <div className='max-w-md mx-auto bg-white min-h-screen relative pb-20 flex flex-col'>
+    <div className='max-w-md mx-auto bg-white min-h-screen relative pb-32'>
       <DashboardHeader
         isLive={actuallyStreaming}
         onToggleAppMode={onToggleAppMode}
-        onToggleLive={handleToggleLive}
         onShowSettings={() => setShowSettings(true)}
       />
-      <div className='p-4'>
-        <div className='mb-4'>
-          <label
-            htmlFor='streamIdInput'
-            className='block text-sm font-medium text-gray-700 mb-1'
-          >
-            Stream ID
-          </label>
-          <input
-            id='streamIdInput'
-            type='text'
-            value={streamIdForComponent}
-            onChange={e => setStreamIdForComponent(e.target.value)}
-            disabled={isLive || actuallyStreaming}
-            className='w-full p-2 border border-gray-300 rounded-md mb-2'
-          />
-          {isClient ? (
-            <StreamComponent
-              streamIdToUse={streamIdForComponent}
-              initiateStream={isLive}
-              onStreamStatusUpdate={handleStreamStatusUpdate}
-            />
-          ) : (
-            <div className='w-full h-48 flex justify-center items-center bg-gray-800 text-white'>
-              <p>Initializing streaming component...</p>
-            </div>
-          )}
-        </div>
-
-        <Button
-          onClick={handleToggleLive}
-          variant={actuallyStreaming ? 'destructive' : 'default'}
-          className='w-full mb-4 h-12 text-lg'
-          disabled={!streamIdForComponent.trim() || !isClient}
-        >
-          {actuallyStreaming ? (
-            <VideoOff className='mr-2 h-5 w-5' />
-          ) : (
-            <Video className='mr-2 h-5 w-5' />
-          )}
-          {actuallyStreaming ? 'Stop Stream' : 'Go Live'}
-        </Button>
-      </div>
-
-      <DashboardStats
-        viewerCount={viewerCount}
-        totalTips={totalTips}
-        recentMessagesCount={recentMessages.length}
-      />
+      
+      {/* Stream Title Section */}
       <div className='p-4 border-b border-gray-200'>
         <div className='text-sm text-gray-500 mb-1'>Stream Title</div>
         <div className='text-sm font-medium'>{streamTitle}</div>
       </div>
+      
+      <DashboardStats
+        viewerCount={viewerCount}
+        totalTips={totalTips}
+        recentMessagesCount={recentMessages.length}
+        isLive={isLive}
+        onToggleLive={handleToggleLive}
+      />
 
       <ChatActivityMonitor
         chatEnabled={chatEnabled}
@@ -367,13 +327,13 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         onTipComment={handleOpenTipCommentModal}
       />
 
-      <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[calc(100%-2rem)] max-w-md z-20'>
+      <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center w-[calc(100%-2rem)] max-w-md z-20'>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 onClick={handleOpenSprinkleModal}
-                className='w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full shadow-lg h-14'
+                className='w-56 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full shadow-lg h-14'
                 size='lg'
                 disabled={!actuallyStreaming || !isClient}
               >

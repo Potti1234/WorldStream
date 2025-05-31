@@ -14,14 +14,12 @@ import {
 interface DashboardHeaderProps {
   isLive: boolean
   onToggleAppMode: () => void
-  onToggleLive: () => void
   onShowSettings: () => void
 }
 
 export function DashboardHeader ({
   isLive,
   onToggleAppMode,
-  onToggleLive,
   onShowSettings
 }: DashboardHeaderProps) {
   return (
@@ -70,16 +68,6 @@ export function DashboardHeader ({
           <Settings className='h-5 w-5' />
         </Button>
       </div>
-
-      {/* Live Toggle */}
-      <Button
-        onClick={onToggleLive}
-        variant={isLive ? 'destructive' : 'default'}
-        className='w-full rounded-full'
-        size='lg'
-      >
-        {isLive ? 'End Stream' : 'Go Live'}
-      </Button>
     </div>
   )
 }

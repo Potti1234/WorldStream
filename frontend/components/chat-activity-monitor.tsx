@@ -1,10 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DollarSign, Trash2, Ban } from 'lucide-react'
+import { DollarSign, Trash2, Ban, MoreVertical } from 'lucide-react'
 import { DashboardMessage } from '@/app/types'
 
 interface ChatActivityMonitorProps {
@@ -22,6 +23,22 @@ export function ChatActivityMonitor ({
   onBanUser,
   onTipComment
 }: ChatActivityMonitorProps) {
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+
+  const toggleMenu = (messageId: string) => {
+    setOpenMenuId(openMenuId === messageId ? null : messageId)
+  }
+
+  const handleDeleteMessage = (id: string) => {
+    onDeleteMessage(id)
+    setOpenMenuId(null)
+  }
+
+  const handleBanUser = (username: string) => {
+    onBanUser(username)
+    setOpenMenuId(null)
+  }
+
   return (
     <div className='flex-1'>
       <div className='p-4 border-b border-gray-200'>
@@ -37,7 +54,7 @@ export function ChatActivityMonitor ({
       </div>
 
       <ScrollArea className='h-[450px]'>
-        <div className='p-4'>
+        <div className='p-4 pb-16'>
           {recentMessages.map(msg => (
             <div
               key={msg.id}
@@ -59,22 +76,6 @@ export function ChatActivityMonitor ({
                       <span className='text-sm font-medium truncate'>
                         {msg.username}
                       </span>
-                      {msg.isTip && (
-                        <Badge
-                          variant='outline'
-                          className='text-xs bg-green-50 text-green-600 border-green-200 rounded-full'
-                        >
-                          TIP
-                        </Badge>
-                      )}
-                      {msg.isStreamerTip && (
-                        <Badge
-                          variant='outline'
-                          className='text-xs bg-purple-50 text-purple-600 border-purple-200 rounded-full'
-                        >
-                          STREAMER
-                        </Badge>
-                      )}
                       {msg.streamerTip && (
                         <Badge
                           variant='outline'
@@ -102,22 +103,38 @@ export function ChatActivityMonitor ({
                       <DollarSign className='h-4 w-4' />
                     </Button>
                   )}
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='h-9 w-9 p-0 text-gray-400 hover:text-red-500 rounded-full'
-                    onClick={() => onDeleteMessage(msg.id)}
-                  >
-                    <Trash2 className='h-4 w-4' />
-                  </Button>
-                  <Button
-                    variant='ghost'
-                    size='sm'
-                    className='h-9 w-9 p-0 text-gray-400 hover:text-red-500 rounded-full'
-                    onClick={() => onBanUser(msg.username)}
-                  >
-                    <Ban className='h-4 w-4' />
-                  </Button>
+                  
+                  {msg.username !== 'System' && (
+                    <div className='relative'>
+                      <Button
+                        variant='ghost'
+                        size='sm'
+                        className='h-9 w-9 p-0 text-gray-400 hover:text-gray-600 rounded-full'
+                        onClick={() => toggleMenu(msg.id)}
+                      >
+                        <MoreVertical className='h-4 w-4' />
+                      </Button>
+                      
+                      {openMenuId === msg.id && (
+                        <div className='absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]'>
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            className='flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 first:rounded-t-md'
+                          >
+                            <Trash2 className='h-4 w-4 mr-2' />
+                            Delete Message
+                          </button>
+                          <button
+                            onClick={() => handleBanUser(msg.username)}
+                            className='flex items-center w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50 last:rounded-b-md'
+                          >
+                            <Ban className='h-4 w-4 mr-2' />
+                            Ban User
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
