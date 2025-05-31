@@ -382,6 +382,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
       {/* Stream Info */}
       <div className='p-4 border-b border-gray-200'>
         <h2 className='font-medium text-sm mb-1'>{streamer.title}</h2>
+        <p className='text-xs text-gray-500 mb-2'>Stream ID: {streamer.id}</p>
         <Badge variant='secondary' className='text-xs rounded-full'>
           {streamer.category}
         </Badge>
