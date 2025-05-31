@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { WebRTCAdaptor } from '@antmedia/webrtc_adaptor'
 import { Button } from '@/components/ui/button'
+import { createStream, deleteStream } from '@/lib/api-stream'
 
 const StreamComponent = () => {
   const [publishing, setPublishing] = useState(false)
@@ -11,11 +12,32 @@ const StreamComponent = () => {
   const webRTCAdaptor = useRef<WebRTCAdaptor | null>(null)
   const publishingStream = useRef<string | null>(null)
 
+  const handleCreateStream = async () => {
+    const newStream = await createStream(streamId)
+    if (newStream) {
+      alert(
+        `Stream created with ID: ${newStream.id} and StreamId: ${newStream.streamId}`
+      )
+    } else {
+      alert('Failed to create stream.')
+    }
+  }
+
+  const handleDeleteStream = async () => {
+    const success = await deleteStream(streamId)
+    if (success) {
+      alert(`Stream with StreamId: ${streamId} deleted successfully.`)
+    } else {
+      alert(`Failed to delete stream with StreamId: ${streamId}.`)
+    }
+  }
+
   const handlePublish = () => {
     setPublishing(true)
     publishingStream.current = streamId
     if (webRTCAdaptor.current) {
       webRTCAdaptor.current.publish(streamId)
+      handleCreateStream()
     }
   }
 
@@ -24,6 +46,7 @@ const StreamComponent = () => {
     if (webRTCAdaptor.current && publishingStream.current) {
       // Assuming stop can be used for publishing as well, or specific unpublish method if available
       webRTCAdaptor.current.stop(publishingStream.current)
+      handleDeleteStream()
     }
   }
 
