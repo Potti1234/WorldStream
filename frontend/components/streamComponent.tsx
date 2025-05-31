@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { clientLogger } from '@/lib/client-logger'
 import { WebRTCAdaptor } from '@antmedia/webrtc_adaptor'
 import { createStream, deleteStream } from '@/lib/api-stream'
+import { toast } from 'sonner'
 
 interface StreamComponentProps {
   streamIdToUse: string
@@ -37,24 +38,28 @@ const StreamComponent = ({
   const handleCreateStreamInternal = async (id: string) => {
     const newStream = await createStream(id)
     if (newStream) {
-      alert(
+      toast.success(
         `Stream created with ID: ${newStream.id} and StreamId: ${newStream.streamId}`
       )
     } else {
-      alert('Failed to create stream.')
+      toast.error('Failed to create stream.')
     }
   }
 
   const handleDeleteStreamInternal = async (id: string) => {
     if (!id) {
-      clientLogger.warn('handleDeleteStreamInternal called with no id', {}, 'StreamComponent')
+      clientLogger.warn(
+        'handleDeleteStreamInternal called with no id',
+        {},
+        'StreamComponent'
+      )
       return
     }
     const success = await deleteStream(id)
     if (success) {
-      alert(`Stream with StreamId: ${id} deleted successfully.`)
+      toast.success(`Stream with StreamId: ${id} deleted successfully.`)
     } else {
-      alert(`Failed to delete stream with StreamId: ${id}.`)
+      toast.error(`Failed to delete stream with StreamId: ${id}.`)
     }
   }
 
@@ -64,7 +69,11 @@ const StreamComponent = ({
       websocketConnected &&
       streamIdToUseRef.current
     ) {
-      clientLogger.debug('Attempting to publish stream', { streamId: streamIdToUseRef.current }, 'StreamComponent')
+      clientLogger.debug(
+        'Attempting to publish stream',
+        { streamId: streamIdToUseRef.current },
+        'StreamComponent'
+      )
       webRTCAdaptor.current.publish(streamIdToUseRef.current)
       handleCreateStreamInternal(streamIdToUseRef.current)
     } else {
@@ -76,11 +85,19 @@ const StreamComponent = ({
 
   const internalHandleStopPublishing = useCallback(() => {
     if (webRTCAdaptor.current && publishingStream.current) {
-      clientLogger.debug('Attempting to stop stream', { streamId: publishingStream.current }, 'StreamComponent')
+      clientLogger.debug(
+        'Attempting to stop stream',
+        { streamId: publishingStream.current },
+        'StreamComponent'
+      )
       webRTCAdaptor.current.stop(publishingStream.current)
       handleDeleteStreamInternal(publishingStream.current)
     } else {
-      clientLogger.warn('Cannot stop: WebRTC Adaptor not ready or no stream currently publishing.', {}, 'StreamComponent')
+      clientLogger.warn(
+        'Cannot stop: WebRTC Adaptor not ready or no stream currently publishing.',
+        {},
+        'StreamComponent'
+      )
     }
   }, [])
 
@@ -126,18 +143,34 @@ const StreamComponent = ({
             const startedStreamId = obj?.streamId || streamIdToUseRef.current
             publishingStream.current = startedStreamId
             onStreamStatusUpdateRef.current?.(true, startedStreamId)
-            clientLogger.info('Publish started', { streamId: startedStreamId }, 'StreamComponent')
+            clientLogger.info(
+              'Publish started',
+              { streamId: startedStreamId },
+              'StreamComponent'
+            )
           } else if (info === 'publish_finished') {
             setPublishing(false)
             const finishedStreamId = publishingStream.current
             publishingStream.current = null
             onStreamStatusUpdateRef.current?.(false, finishedStreamId)
-            clientLogger.info('Publish finished', { streamId: finishedStreamId }, 'StreamComponent')
+            clientLogger.info(
+              'Publish finished',
+              { streamId: finishedStreamId },
+              'StreamComponent'
+            )
           }
         },
         callbackError: (error: any, message: any) => {
-          clientLogger.error('WebRTC Adaptor error', { error: JSON.stringify(error) }, 'StreamComponent')
-          clientLogger.error('WebRTC error message', { message }, 'StreamComponent')
+          clientLogger.error(
+            'WebRTC Adaptor error',
+            { error: JSON.stringify(error) },
+            'StreamComponent'
+          )
+          clientLogger.error(
+            'WebRTC error message',
+            { message },
+            'StreamComponent'
+          )
           const erroredStreamId = publishingStream.current
           setPublishing(false)
           publishingStream.current = null
@@ -155,7 +188,11 @@ const StreamComponent = ({
           handleDeleteStreamInternal(publishingStream.current)
           publishingStream.current = null
         }
-        clientLogger.debug('StreamComponent unmounting, attempting to stop WebRTC Adaptor activities.', {}, 'StreamComponent')
+        clientLogger.debug(
+          'StreamComponent unmounting, attempting to stop WebRTC Adaptor activities.',
+          {},
+          'StreamComponent'
+        )
       }
     }
   }, [])
