@@ -12,204 +12,214 @@ const mockStreamers: Streamer[] = [
   {
     id: '1',
     name: 'GamerGirl123',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=GG&background=e74c3c&color=fff&size=40',
     title: 'Epic Valorant Ranked Climb! Road to Radiant 🔥',
     category: 'Valorant',
     viewers: 2847,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '2',
     name: 'ProPlayer_Mike',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=PM&background=3498db&color=fff&size=40',
     title: 'League of Legends Solo Queue - Challenger Gameplay',
     category: 'League of Legends',
     viewers: 1523,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '3',
     name: 'ArtisticAnna',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=AA&background=9b59b6&color=fff&size=40',
     title: 'Digital Art Stream - Drawing Fantasy Characters',
     category: 'Art',
     viewers: 892,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '4',
     name: 'MusicMaster_DJ',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=MM&background=e67e22&color=fff&size=40',
     title: 'Chill Beats & Good Vibes - Late Night Mix',
     category: 'Music',
     viewers: 1247,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '5',
     name: 'CookingChef_Sam',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=CS&background=27ae60&color=fff&size=40',
     title: 'Making Homemade Pasta from Scratch!',
     category: 'Cooking',
     viewers: 634,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '6',
     name: 'TechTalker',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=TT&background=2c3e50&color=fff&size=40',
     title: 'Building a Full-Stack App with Next.js and Firebase',
     category: 'Programming',
     viewers: 1876,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '7',
     name: 'FitnessFanatic',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=FF&background=f39c12&color=fff&size=40',
     title: '30-Minute HIIT Workout - No Equipment Needed!',
     category: 'Fitness',
     viewers: 2134,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '8',
     name: 'TravelBug',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=TB&background=16a085&color=fff&size=40',
     title: 'Exploring Tokyo Streets - Live Walking Tour',
     category: 'Travel',
     viewers: 3567,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '9',
     name: 'BookWorm',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=BW&background=8e44ad&color=fff&size=40',
     title: "Book Club Discussion - 'The Midnight Library'",
     category: 'Books',
     viewers: 743,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '10',
     name: 'ComedyKing',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=CK&background=d35400&color=fff&size=40',
     title: 'Stand-up Comedy Night - Live from My Basement',
     category: 'Comedy',
     viewers: 4231,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '11',
     name: 'MovieCritic',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=MC&background=c0392b&color=fff&size=40',
     title: 'Reviewing the Latest Marvel Movie - Spoilers!',
     category: 'Movies',
     viewers: 1892,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1489599904847-62b4c666e70a?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '12',
     name: 'ScienceGeek',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=SG&background=2980b9&color=fff&size=40',
     title: 'Explaining Quantum Physics in Simple Terms',
     category: 'Science',
     viewers: 2156,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '13',
     name: 'CryptoExpert',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=CE&background=f1c40f&color=000&size=40',
     title: 'Bitcoin Analysis - Where is the Market Heading?',
     category: 'Cryptocurrency',
     viewers: 3245,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '14',
     name: 'PetLover',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=PL&background=e91e63&color=fff&size=40',
     title: 'Puppy Training 101 - Basic Commands',
     category: 'Pets',
     viewers: 1432,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '15',
     name: 'FashionIcon',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=FI&background=9c27b0&color=fff&size=40',
     title: "Summer Fashion Trends 2025 - What's Hot",
     category: 'Fashion',
     viewers: 2765,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '16',
     name: 'DIY_Master',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=DM&background=795548&color=fff&size=40',
     title: 'Building a Bookshelf from Reclaimed Wood',
     category: 'DIY',
     viewers: 1123,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '17',
     name: 'MindfulnessCoach',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=MC&background=4caf50&color=fff&size=40',
     title: 'Guided Meditation for Stress Relief',
     category: 'Wellness',
     viewers: 1876,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '18',
     name: 'HistoryBuff',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=HB&background=607d8b&color=fff&size=40',
     title: 'Ancient Rome: The Rise and Fall of the Empire',
     category: 'History',
     viewers: 987,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1539650116574-75c0c6d73d12?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '19',
     name: 'SpaceEnthusiast',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=SE&background=673ab7&color=fff&size=40',
     title: 'Live Coverage of SpaceX Rocket Launch',
     category: 'Space',
     viewers: 5432,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=300&h=200&fit=crop&crop=center'
   },
   {
     id: '20',
     name: 'LanguageTutor',
-    avatar: '/placeholder.svg?height=40&width=40',
+    avatar: 'https://ui-avatars.com/api/?name=LT&background=ff5722&color=fff&size=40',
     title: 'Learn Spanish in 30 Days - Day 15',
     category: 'Education',
     viewers: 1543,
     isLive: true,
-    thumbnail: '/placeholder.svg?height=200&width=300'
+    thumbnail: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=300&h=200&fit=crop&crop=center'
   }
 ]
+
+// Function to generate random stream ID
+const generateRandomStreamId = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let result = ''
+  for (let i = 0; i < 12; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return result
+}
 
 export default function App () {
   const [selectedStreamer, setSelectedStreamer] = useState<Streamer | null>(
@@ -226,19 +236,19 @@ export default function App () {
       const apiStreams: ApiStream[] = await getAllStreams()
       if (apiStreams && apiStreams.length > 0) {
         const transformedStreams: Streamer[] = apiStreams.map(
-          (apiStream, index) => ({
-            id: apiStream.streamId,
-            name: `Streamer ${index + 1} (${apiStream.streamId.substring(
-              0,
-              6
-            )})`,
-            avatar: `/placeholder.svg?seed=${apiStream.streamId}&height=40&width=40`,
-            title: `Stream ${index + 1}`,
-            category: 'Live Stream',
-            viewers: Math.floor(Math.random() * 5000) + 100,
-            isLive: true,
-            thumbnail: `/placeholder.svg?seed=${apiStream.streamId}&height=200&width=300`
-          })
+          (apiStream, index) => {
+            const randomStreamId = generateRandomStreamId()
+            return {
+              id: randomStreamId,
+              name: `Streamer ${index + 1} (${randomStreamId.substring(0, 6)})`,
+              avatar: `https://ui-avatars.com/api/?name=S${index + 1}&background=random&color=fff&size=40`,
+              title: `Stream ${index + 1}`,
+              category: 'Live Stream',
+              viewers: Math.floor(Math.random() * 5000) + 100,
+              isLive: true,
+              thumbnail: `https://ams-30774.antmedia.cloud:5443/LiveApp/previews/${randomStreamId}.png?t=${Date.now()}`
+            }
+          }
         )
         setLiveStreams(transformedStreams)
       } else {
