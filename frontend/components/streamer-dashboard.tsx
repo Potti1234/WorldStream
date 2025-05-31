@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Settings, Sparkles, Video, VideoOff } from 'lucide-react'
 import {
@@ -17,8 +18,16 @@ import { ChatActivityMonitor } from './chat-activity-monitor'
 import { StreamerTipModal } from './streamer-tip-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import { StreamSettingsView } from './stream-settings-view'
-import StreamComponent from './streamComponent'
 import type { DashboardMessage } from '@/app/types'
+
+const StreamComponent = dynamic(() => import('./streamComponent'), {
+  ssr: false,
+  loading: () => (
+    <div className='w-full h-48 flex justify-center items-center bg-gray-800 text-white'>
+      <p>Loading streaming component...</p>
+    </div>
+  )
+})
 
 interface StreamerDashboardProps {
   onToggleAppMode: () => void
@@ -78,6 +87,12 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
       isStreamerTip: true
     }
   ])
+
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     if (!actuallyStreaming) {
@@ -306,18 +321,24 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
             disabled={isLive || actuallyStreaming}
             className='w-full p-2 border border-gray-300 rounded-md mb-2'
           />
-          <StreamComponent
-            streamIdToUse={streamIdForComponent}
-            initiateStream={isLive}
-            onStreamStatusUpdate={handleStreamStatusUpdate}
-          />
+          {isClient ? (
+            <StreamComponent
+              streamIdToUse={streamIdForComponent}
+              initiateStream={isLive}
+              onStreamStatusUpdate={handleStreamStatusUpdate}
+            />
+          ) : (
+            <div className='w-full h-48 flex justify-center items-center bg-gray-800 text-white'>
+              <p>Initializing streaming component...</p>
+            </div>
+          )}
         </div>
 
         <Button
           onClick={handleToggleLive}
           variant={actuallyStreaming ? 'destructive' : 'default'}
           className='w-full mb-4 h-12 text-lg'
-          disabled={!streamIdForComponent.trim()}
+          disabled={!streamIdForComponent.trim() || !isClient}
         >
           {actuallyStreaming ? (
             <VideoOff className='mr-2 h-5 w-5' />
@@ -354,7 +375,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
                 onClick={handleOpenSprinkleModal}
                 className='w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full shadow-lg h-14'
                 size='lg'
-                disabled={!actuallyStreaming}
+                disabled={!actuallyStreaming || !isClient}
               >
                 <Sparkles className='h-6 w-6 mr-2' /> Sprinkle Tips
               </Button>

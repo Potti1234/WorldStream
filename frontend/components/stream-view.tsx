@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -21,7 +22,15 @@ import { StreamViewHeader } from './stream-view-header'
 import { ChatMessageList } from './chat-message-list'
 import { ChatInputArea } from './chat-input-area'
 import { TipCommentModal } from './tip-comment-modal'
-import PlayingComponent from './playingComponent'
+
+const PlayingComponent = dynamic(() => import('./playingComponent'), {
+  ssr: false,
+  loading: () => (
+    <div className='w-full h-48 flex justify-center items-center bg-gray-800 text-white'>
+      <p>Loading player...</p>
+    </div>
+  )
+})
 
 interface StreamViewProps {
   streamer: Streamer
@@ -189,6 +198,11 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
   const [shouldPlayStream, setShouldPlayStream] = useState(false)
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false)
   const [playbackError, setPlaybackError] = useState<string | null>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const videoElementId = REMOTE_VIDEO_ELEMENT_ID_PREFIX + streamer.id
 
@@ -422,7 +436,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
       <StreamViewHeader streamer={streamer} onBack={onBack} />
 
       <div className='w-full bg-black relative'>
-        {streamer && streamer.id ? (
+        {isClient && streamer && streamer.id ? (
           <PlayingComponent
             streamIdToPlay={streamer.id}
             shouldBePlaying={shouldPlayStream}
@@ -431,10 +445,14 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
           />
         ) : (
           <div className='w-full h-48 flex justify-center items-center bg-gray-800 text-white'>
-            <p>No stream selected or stream ID is missing.</p>
+            <p>
+              {!isClient
+                ? 'Initializing player...'
+                : 'No stream selected or stream ID is missing.'}
+            </p>
           </div>
         )}
-        {streamer && streamer.id && (
+        {isClient && streamer && streamer.id && (
           <Button
             onClick={togglePlayPause}
             variant='outline'
