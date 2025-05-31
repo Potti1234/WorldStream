@@ -4,25 +4,7 @@ import { useState } from 'react'
 import { StreamerList } from '@/components/streamer-list'
 import { StreamView } from '@/components/stream-view'
 import { StreamerDashboard } from '@/components/streamer-dashboard'
-
-export interface Streamer {
-  id: string
-  name: string
-  avatar: string
-  title: string
-  category: string
-  viewers: number
-  isLive: boolean
-  thumbnail: string
-}
-
-export interface TipData {
-  id: string
-  username: string
-  amount: number
-  message: string
-  timestamp: string
-}
+import { Streamer, TipData } from '@/app/types'
 
 const mockStreamers: Streamer[] = [
   {
