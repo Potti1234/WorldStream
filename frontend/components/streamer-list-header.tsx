@@ -60,7 +60,7 @@ export function StreamerListHeader ({
         <Input
           type='text'
           placeholder='Search streamers, titles, categories...'
-          className='pl-10 pr-10'
+          className='pl-10 pr-10 rounded-full'
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
         />
