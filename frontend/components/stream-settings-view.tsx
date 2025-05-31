@@ -8,11 +8,6 @@ import { Label } from '@/components/ui/label'
 import { Ban, Edit, Save } from 'lucide-react'
 
 interface StreamSettingsViewProps {
-  streamTitle: string
-  setStreamTitle: (title: string) => void
-  isEditingTitle: boolean
-  setIsEditingTitle: (editing: boolean) => void
-  handleSaveTitle: () => void
   chatEnabled: boolean
   setChatEnabled: (enabled: boolean) => void
   tipsEnabled: boolean
@@ -21,11 +16,6 @@ interface StreamSettingsViewProps {
 }
 
 export function StreamSettingsView ({
-  streamTitle,
-  setStreamTitle,
-  isEditingTitle,
-  setIsEditingTitle,
-  handleSaveTitle,
   chatEnabled,
   setChatEnabled,
   tipsEnabled,
@@ -41,44 +31,6 @@ export function StreamSettingsView ({
         </Button>
       </div>
       <div className='p-4 space-y-6'>
-        <Card>
-          <CardHeader className='pb-3'>
-            <CardTitle className='text-base'>Stream Title</CardTitle>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            {isEditingTitle ? (
-              <div className='space-y-2'>
-                <Input
-                  value={streamTitle}
-                  onChange={e => setStreamTitle(e.target.value)}
-                  placeholder='Stream title...'
-                  className='rounded-full'
-                />
-                <Button
-                  onClick={handleSaveTitle}
-                  size='sm'
-                  className='w-full rounded-full'
-                >
-                  <Save className='h-4 w-4 mr-2' />
-                  Save
-                </Button>
-              </div>
-            ) : (
-              <div className='space-y-2'>
-                <p className='text-sm text-gray-600'>{streamTitle}</p>
-                <Button
-                  variant='outline'
-                  onClick={() => setIsEditingTitle(true)}
-                  size='sm'
-                  className='w-full rounded-full'
-                >
-                  <Edit className='h-4 w-4 mr-2' />
-                  Edit
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
         <Card>
           <CardHeader className='pb-3'>
             <CardTitle className='text-base'>Chat Settings</CardTitle>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
-import { Settings, Sparkles, Video, VideoOff } from 'lucide-react'
+import { Settings, Sparkles, Video, VideoOff, Edit, Save } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +11,7 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { Slider } from '@/components/ui/slider'
+import { Input } from '@/components/ui/input'
 
 import { DashboardHeader } from './dashboard-header'
 import { DashboardStats } from './dashboard-stats'
@@ -283,11 +284,6 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   if (showSettings) {
     return (
       <StreamSettingsView
-        streamTitle={streamTitle}
-        setStreamTitle={setStreamTitle}
-        isEditingTitle={isEditingTitle}
-        setIsEditingTitle={setIsEditingTitle}
-        handleSaveTitle={handleSaveTitle}
         chatEnabled={chatEnabled}
         setChatEnabled={setChatEnabled}
         tipsEnabled={tipsEnabled}
@@ -308,7 +304,36 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
       {/* Stream Title Section */}
       <div className='p-4 border-b border-gray-200'>
         <div className='text-sm text-gray-500 mb-1'>Stream Title</div>
-        <div className='text-sm font-medium'>{streamTitle}</div>
+        {isEditingTitle ? (
+          <div className='flex gap-2 items-center'>
+            <Input
+              value={streamTitle}
+              onChange={e => setStreamTitle(e.target.value)}
+              placeholder='Stream title...'
+              className='flex-1 rounded-full text-sm'
+              autoFocus
+            />
+            <Button
+              onClick={handleSaveTitle}
+              size='sm'
+              className='rounded-full px-3'
+            >
+              <Save className='h-4 w-4' />
+            </Button>
+          </div>
+        ) : (
+          <div className='flex items-center justify-between'>
+            <div className='text-sm font-medium flex-1 pr-2'>{streamTitle}</div>
+            <Button
+              variant='ghost'
+              size='sm'
+              onClick={() => setIsEditingTitle(true)}
+              className='rounded-full px-2'
+            >
+              <Edit className='h-4 w-4' />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Stream Component */}
