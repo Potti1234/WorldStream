@@ -1,19 +1,40 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { WebRTCAdaptor } from '@antmedia/webrtc_adaptor'
-import { Button } from '@/components/ui/button'
 import { createStream, deleteStream } from '@/lib/api-stream'
 
-const StreamComponent = () => {
+interface StreamComponentProps {
+  streamIdToUse: string
+  initiateStream: boolean
+  onStreamStatusUpdate?: (
+    isActuallyStreaming: boolean,
+    activeStreamId: string | null
+  ) => void
+}
+
+const StreamComponent = ({
+  streamIdToUse,
+  initiateStream,
+  onStreamStatusUpdate
+}: StreamComponentProps) => {
   const [publishing, setPublishing] = useState(false)
   const [websocketConnected, setWebsocketConnected] = useState(false)
-  const [streamId, setStreamId] = useState('stream123')
   const webRTCAdaptor = useRef<WebRTCAdaptor | null>(null)
   const publishingStream = useRef<string | null>(null)
 
-  const handleCreateStream = async () => {
-    const newStream = await createStream(streamId)
+  const onStreamStatusUpdateRef = useRef(onStreamStatusUpdate)
+  useEffect(() => {
+    onStreamStatusUpdateRef.current = onStreamStatusUpdate
+  }, [onStreamStatusUpdate])
+
+  const streamIdToUseRef = useRef(streamIdToUse)
+  useEffect(() => {
+    streamIdToUseRef.current = streamIdToUse
+  }, [streamIdToUse])
+
+  const handleCreateStreamInternal = async (id: string) => {
+    const newStream = await createStream(id)
     if (newStream) {
       alert(
         `Stream created with ID: ${newStream.id} and StreamId: ${newStream.streamId}`
@@ -23,41 +44,69 @@ const StreamComponent = () => {
     }
   }
 
-  const handleDeleteStream = async () => {
-    const success = await deleteStream(streamId)
+  const handleDeleteStreamInternal = async (id: string) => {
+    if (!id) {
+      console.warn('handleDeleteStreamInternal called with no id')
+      return
+    }
+    const success = await deleteStream(id)
     if (success) {
-      alert(`Stream with StreamId: ${streamId} deleted successfully.`)
+      alert(`Stream with StreamId: ${id} deleted successfully.`)
     } else {
-      alert(`Failed to delete stream with StreamId: ${streamId}.`)
+      alert(`Failed to delete stream with StreamId: ${id}.`)
     }
   }
 
-  const handlePublish = () => {
-    setPublishing(true)
-    publishingStream.current = streamId
-    if (webRTCAdaptor.current) {
-      webRTCAdaptor.current.publish(streamId)
-      handleCreateStream()
+  const internalHandlePublish = useCallback(() => {
+    if (
+      webRTCAdaptor.current &&
+      websocketConnected &&
+      streamIdToUseRef.current
+    ) {
+      console.log('Attempting to publish stream:', streamIdToUseRef.current)
+      webRTCAdaptor.current.publish(streamIdToUseRef.current)
+      handleCreateStreamInternal(streamIdToUseRef.current)
+    } else {
+      console.warn(
+        'Cannot publish: WebRTC Adaptor not ready, websocket not connected, or streamIdToUse not provided.'
+      )
     }
-  }
+  }, [websocketConnected])
 
-  const handleStopPublishing = () => {
-    setPublishing(false)
+  const internalHandleStopPublishing = useCallback(() => {
     if (webRTCAdaptor.current && publishingStream.current) {
-      // Assuming stop can be used for publishing as well, or specific unpublish method if available
+      console.log('Attempting to stop stream:', publishingStream.current)
       webRTCAdaptor.current.stop(publishingStream.current)
-      handleDeleteStream()
+      handleDeleteStreamInternal(publishingStream.current)
+    } else {
+      console.warn(
+        'Cannot stop: WebRTC Adaptor not ready or no stream currently publishing.'
+      )
     }
-  }
+  }, [])
 
-  const handleStreamIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setStreamId(event.target.value)
-  }
+  useEffect(() => {
+    if (!webRTCAdaptor.current || !websocketConnected) {
+      return
+    }
+
+    if (initiateStream && !publishing) {
+      internalHandlePublish()
+    } else if (!initiateStream && publishing) {
+      internalHandleStopPublishing()
+    }
+  }, [
+    initiateStream,
+    publishing,
+    websocketConnected,
+    internalHandlePublish,
+    internalHandleStopPublishing
+  ])
 
   useEffect(() => {
     if (webRTCAdaptor.current === undefined || webRTCAdaptor.current === null) {
       webRTCAdaptor.current = new WebRTCAdaptor({
-        websocket_url: 'wss://ams-30774.antmedia.cloud:5443/LiveApp/websocket', // Replace with your WebSocket URL
+        websocket_url: 'wss://ams-30774.antmedia.cloud:5443/LiveApp/websocket',
         mediaConstraints: {
           video: true,
           audio: true
@@ -66,87 +115,80 @@ const StreamComponent = () => {
           iceServers: [{ urls: 'stun:stun1.l.google.com:19302' }]
         },
         sdp_constraints: {
-          OfferToReceiveAudio: false, // Usually false for publishing
-          OfferToReceiveVideo: false // Usually false for publishing
+          OfferToReceiveAudio: false,
+          OfferToReceiveVideo: false
         },
-        localVideoId: 'localVideo', // Changed from remoteVideoId
-        callback: (info: any) => {
+        localVideoId: 'localVideo',
+        callback: (info: string, obj: any) => {
           if (info === 'initialized') {
             setWebsocketConnected(true)
-          }
-          if (info === 'publish_started') {
+          } else if (info === 'publish_started') {
             setPublishing(true)
-            console.log('publish started')
+            const startedStreamId = obj?.streamId || streamIdToUseRef.current
+            publishingStream.current = startedStreamId
+            onStreamStatusUpdateRef.current?.(true, startedStreamId)
+            console.log('Publish started for stream:', startedStreamId)
           } else if (info === 'publish_finished') {
             setPublishing(false)
-            console.log('publish finished')
+            const finishedStreamId = publishingStream.current
+            publishingStream.current = null
+            onStreamStatusUpdateRef.current?.(false, finishedStreamId)
+            console.log('Publish finished for stream:', finishedStreamId)
           }
         },
-        callbackError: function (error: any, message: any) {
-          console.error('error callback: ' + JSON.stringify(error))
-          console.error('error message: ' + message)
-          // Re-try mechanism can be implemented here
-          if (error === 'publishTimeoutError') {
-            // You can try to republish.
-          }
+        callbackError: (error: any, message: any) => {
+          console.error('WebRTC Adaptor error callback:', JSON.stringify(error))
+          console.error('Error message:', message)
+          const erroredStreamId = publishingStream.current
           setPublishing(false)
+          publishingStream.current = null
+          onStreamStatusUpdateRef.current?.(false, erroredStreamId)
+          if (error === 'publishTimeoutError') {
+          }
         }
       })
+    }
+
+    return () => {
+      if (webRTCAdaptor.current) {
+        if (publishingStream.current) {
+          webRTCAdaptor.current.stop(publishingStream.current)
+          handleDeleteStreamInternal(publishingStream.current)
+          publishingStream.current = null
+        }
+        console.log(
+          'StreamComponent unmounting, attempting to stop WebRTC Adaptor activities.'
+        )
+      }
     }
   }, [])
 
   return (
-    <div className='container mx-auto text-center p-4'>
-      <h1 className='text-3xl font-bold mb-8'>Stream Page</h1>
-
-      <div className='mb-4'>
-        <div className='flex justify-center'>
-          <video
-            id='localVideo' // Changed from remoteVideo
-            controls
-            autoPlay
-            muted={true} // Local video is often muted to avoid feedback
-            playsInline={true}
-            style={{
-              width: '40vw',
-              height: '60vh',
-              maxWidth: '100%',
-              maxHeight: '100%'
-            }}
-          ></video>
-        </div>
-      </div>
-      <div className='flex flex-col items-center'>
-        <div className='mb-3 w-full max-w-md'>
-          <input
-            className='block w-full p-2 text-lg border border-gray-300 rounded-md'
-            type='text'
-            defaultValue={streamId}
-            onChange={handleStreamIdChange}
-          />
-          <label
-            className='block text-sm font-medium text-gray-700 mt-1'
-            htmlFor='streamId'
-          >
-            Enter Stream Id
-          </label>
-        </div>
-        <div className='flex justify-center'>
-          {!publishing ? (
-            <Button
-              variant='default'
-              disabled={!websocketConnected}
-              onClick={handlePublish}
-            >
-              Start Streaming
-            </Button>
-          ) : (
-            <Button variant='destructive' onClick={handleStopPublishing}>
-              Stop Streaming
-            </Button>
-          )}
-        </div>
-      </div>
+    <div className='w-full'>
+      <video
+        id='localVideo'
+        controls
+        autoPlay
+        muted={true}
+        playsInline={true}
+        style={{
+          width: '100%',
+          height: 'auto',
+          maxHeight: '60vh',
+          border: '1px solid #ccc',
+          backgroundColor: '#000'
+        }}
+      ></video>
+      {websocketConnected ? (
+        <p className='text-xs text-green-500 mt-1'>Websocket Connected</p>
+      ) : (
+        <p className='text-xs text-red-500 mt-1'>Websocket Disconnected</p>
+      )}
+      {publishing && (
+        <p className='text-xs text-blue-500 mt-1'>
+          Streaming Live (ID: {publishingStream.current || 'N/A'})
+        </p>
+      )}
     </div>
   )
 }

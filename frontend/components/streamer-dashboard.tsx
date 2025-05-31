@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Settings, Sparkles } from 'lucide-react'
+import { Settings, Sparkles, Video, VideoOff } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -17,6 +17,7 @@ import { ChatActivityMonitor } from './chat-activity-monitor'
 import { StreamerTipModal } from './streamer-tip-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import { StreamSettingsView } from './stream-settings-view'
+import StreamComponent from './streamComponent'
 import type { DashboardMessage } from '@/app/types'
 
 interface StreamerDashboardProps {
@@ -25,15 +26,19 @@ interface StreamerDashboardProps {
 }
 
 export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) {
-  const [isLive, setIsLive] = useState(true)
+  const [isLive, setIsLive] = useState(false)
+  const [actuallyStreaming, setActuallyStreaming] = useState(false)
+  const [streamIdForComponent, setStreamIdForComponent] = useState(
+    'streamerDashboardStream'
+  )
   const [streamTitle, setStreamTitle] = useState(
     'Epic Valorant Ranked Climb! Road to Radiant 🔥'
   )
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [chatEnabled, setChatEnabled] = useState(true)
   const [tipsEnabled, setTipsEnabled] = useState(true)
-  const [viewerCount, setViewerCount] = useState(2847)
-  const [totalTips, setTotalTips] = useState(342.5)
+  const [viewerCount, setViewerCount] = useState(0)
+  const [totalTips, setTotalTips] = useState(0)
   const [showSettings, setShowSettings] = useState(false)
 
   const [streamerTipModalOpen, setStreamerTipModalOpen] = useState(false)
@@ -75,18 +80,22 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   ])
 
   useEffect(() => {
+    if (!actuallyStreaming) {
+      setViewerCount(0)
+      return
+    }
     const interval = setInterval(
       () =>
         setViewerCount(prev =>
-          Math.max(1, prev + Math.floor(Math.random() * 21) - 10)
+          Math.max(0, prev + Math.floor(Math.random() * 21) - 10)
         ),
       5000
     )
     return () => clearInterval(interval)
-  }, [])
+  }, [actuallyStreaming])
 
   useEffect(() => {
-    if (!chatEnabled) return
+    if (!chatEnabled || !actuallyStreaming) return
     const names = ['alpha', 'beta', 'gamma', 'delta', 'epsilon']
     const texts = ['Nice one!', 'Keep it up!', 'Awesome stream!', 'So cool!']
     const interval = setInterval(() => {
@@ -104,9 +113,30 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
       setRecentMessages(prev => [newMessage, ...prev.slice(0, 9)])
     }, 8000)
     return () => clearInterval(interval)
-  }, [chatEnabled])
+  }, [chatEnabled, actuallyStreaming])
 
-  const handleToggleLive = () => setIsLive(!isLive)
+  const handleToggleLive = () => {
+    setIsLive(!isLive)
+  }
+
+  const handleStreamStatusUpdate = (
+    isActuallyStreaming: boolean,
+    activeStreamId: string | null
+  ) => {
+    setActuallyStreaming(isActuallyStreaming)
+    console.log(
+      `Dashboard: Stream status update: isActuallyStreaming=${isActuallyStreaming}, activeStreamId=${activeStreamId}`
+    )
+    if (isActuallyStreaming && activeStreamId !== streamIdForComponent) {
+      console.warn(
+        `Dashboard: Stream started with ID ${activeStreamId} which differs from intended ${streamIdForComponent}`
+      )
+    }
+    if (!isActuallyStreaming && isLive) {
+      setIsLive(false)
+    }
+  }
+
   const handleSaveTitle = () => setIsEditingTitle(false)
   const handleDeleteMessage = (id: string) =>
     setRecentMessages(prev => prev.filter(msg => msg.id !== id))
@@ -253,13 +283,51 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   }
 
   return (
-    <div className='max-w-md mx-auto bg-white min-h-screen relative pb-20'>
+    <div className='max-w-md mx-auto bg-white min-h-screen relative pb-20 flex flex-col'>
       <DashboardHeader
-        isLive={isLive}
+        isLive={actuallyStreaming}
         onToggleAppMode={onToggleAppMode}
         onToggleLive={handleToggleLive}
         onShowSettings={() => setShowSettings(true)}
       />
+      <div className='p-4'>
+        <div className='mb-4'>
+          <label
+            htmlFor='streamIdInput'
+            className='block text-sm font-medium text-gray-700 mb-1'
+          >
+            Stream ID
+          </label>
+          <input
+            id='streamIdInput'
+            type='text'
+            value={streamIdForComponent}
+            onChange={e => setStreamIdForComponent(e.target.value)}
+            disabled={isLive || actuallyStreaming}
+            className='w-full p-2 border border-gray-300 rounded-md mb-2'
+          />
+          <StreamComponent
+            streamIdToUse={streamIdForComponent}
+            initiateStream={isLive}
+            onStreamStatusUpdate={handleStreamStatusUpdate}
+          />
+        </div>
+
+        <Button
+          onClick={handleToggleLive}
+          variant={actuallyStreaming ? 'destructive' : 'default'}
+          className='w-full mb-4 h-12 text-lg'
+          disabled={!streamIdForComponent.trim()}
+        >
+          {actuallyStreaming ? (
+            <VideoOff className='mr-2 h-5 w-5' />
+          ) : (
+            <Video className='mr-2 h-5 w-5' />
+          )}
+          {actuallyStreaming ? 'Stop Stream' : 'Go Live'}
+        </Button>
+      </div>
+
       <DashboardStats
         viewerCount={viewerCount}
         totalTips={totalTips}
@@ -286,12 +354,13 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
                 onClick={handleOpenSprinkleModal}
                 className='w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-full shadow-lg h-14'
                 size='lg'
+                disabled={!actuallyStreaming}
               >
                 <Sparkles className='h-6 w-6 mr-2' /> Sprinkle Tips
               </Button>
             </TooltipTrigger>
             <TooltipContent side='top'>
-              <p>Randomly tip verified viewers</p>
+              <p>Randomly tip verified viewers (Stream must be live)</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
