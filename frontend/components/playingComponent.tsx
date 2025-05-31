@@ -46,7 +46,7 @@ const PlayingComponent = () => {
           OfferToReceiveVideo: true // Set to true to receive video
         },
         remoteVideoId: 'remoteVideo',
-        callback: (info: any, obj: any) => {
+        callback: (info: any) => {
           if (info === 'initialized') {
             setWebsocketConnected(true)
           }
