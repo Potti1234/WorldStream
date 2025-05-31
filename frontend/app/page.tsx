@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { MiniKit } from '@worldcoin/minikit-js';
 import { StreamerList } from '@/components/streamer-list'
 import { StreamView } from '@/components/stream-view'
 import { StreamerDashboard } from '@/components/streamer-dashboard'
@@ -221,6 +220,19 @@ const generateRandomStreamId = () => {
   return result
 }
 
+// Function to safely check MiniKit availability
+const checkMiniKitSupport = () => {
+  if (typeof window === 'undefined') return false;
+  
+  try {
+    const { MiniKit } = require('@worldcoin/minikit-js');
+    return MiniKit && typeof MiniKit.isInstalled === 'function' ? MiniKit.isInstalled() : false;
+  } catch (error) {
+    console.log('MiniKit not available:', error);
+    return false;
+  }
+};
+
 export default function App () {
   const [selectedStreamer, setSelectedStreamer] = useState<Streamer | null>(
     null
@@ -230,7 +242,10 @@ export default function App () {
   const [isLoadingStreams, setIsLoadingStreams] = useState(true)
 
   useEffect(() => {
-    console.log('Opened in World App?', MiniKit.isInstalled());
+    // Safely check MiniKit support
+    const isWorldApp = checkMiniKitSupport();
+    console.log('Opened in World App?', isWorldApp);
+    
     const fetchStreams = async () => {
       setIsLoadingStreams(true)
       const apiStreams: ApiStream[] = await getAllStreams()
