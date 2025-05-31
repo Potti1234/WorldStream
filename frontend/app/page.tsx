@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { clientLogger } from '@/lib/client-logger'
 import { StreamerList } from '@/components/streamer-list'
 import { StreamView } from '@/components/stream-view'
 import { StreamerDashboard } from '@/components/streamer-dashboard'
 import { Streamer } from '@/app/types'
 import { getAllStreams, Stream as ApiStream } from '@/lib/api-stream'
+import { clientLogger } from '@/lib/client-logger'
 
 // Function to generate display name for streamers
 const generateDisplayName = (streamId: string, index: number) => {
@@ -129,7 +129,7 @@ export default function App () {
       intervalId = setInterval(async () => {
         try {
           await fetchStreams()
-          clientLogger.debug('Auto-refreshed stream list', {}, 'App')
+          console.debug('Auto-refreshed stream list', 'App')
         } catch (error) {
           console.error('Auto-refresh failed:', error)
         }

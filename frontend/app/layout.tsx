@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { clientLogger } from "@/lib/client-logger";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +31,7 @@ function ConditionalMiniKitProvider({ children }: { children: React.ReactNode })
         return <MiniKitProvider>{children}</MiniKitProvider>;
       }
     } catch (error) {
-      clientLogger.debug('MiniKit not available', { error }, 'MiniKitProvider');
+      console.debug('MiniKit not available', error);
     }
   }
   
