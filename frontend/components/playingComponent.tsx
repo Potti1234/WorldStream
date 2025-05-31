@@ -35,8 +35,8 @@ const PlayingComponent = () => {
       webRTCAdaptor.current = new WebRTCAdaptor({
         websocket_url: 'wss://ams-30774.antmedia.cloud:5443/LiveApp/websocket',
         mediaConstraints: {
-          video: true,
-          audio: true
+          video: false,
+          audio: false
         },
         peerconnection_config: {
           iceServers: [{ urls: 'stun:stun1.l.google.com:19302' }]
