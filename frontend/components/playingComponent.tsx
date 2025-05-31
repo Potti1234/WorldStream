@@ -4,10 +4,13 @@ import React, { useState, useEffect, useRef } from 'react'
 import { WebRTCAdaptor } from '@antmedia/webrtc_adaptor'
 import { Button } from '@/components/ui/button'
 
-const PlayingComponent = () => {
+interface PlayingComponentProps {
+  streamId: string
+}
+
+const PlayingComponent = ({ streamId }: PlayingComponentProps) => {
   const [playing, setPlaying] = useState(false)
   const [websocketConnected, setWebsocketConnected] = useState(false)
-  const [streamId, setStreamId] = useState('stream123')
   const webRTCAdaptor = useRef<WebRTCAdaptor | null>(null)
   const playingStream = useRef<string | null>(null)
 
@@ -24,10 +27,6 @@ const PlayingComponent = () => {
     if (webRTCAdaptor.current && playingStream.current) {
       webRTCAdaptor.current.stop(playingStream.current)
     }
-  }
-
-  const handleStreamIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setStreamId(event.target.value)
   }
 
   useEffect(() => {
@@ -85,20 +84,7 @@ const PlayingComponent = () => {
         </div>
       </div>
       <div className='flex flex-col items-center'>
-        <div className='mb-3 w-full max-w-md'>
-          <input
-            className='block w-full p-2 text-lg border border-gray-300 rounded-md'
-            type='text'
-            defaultValue={streamId}
-            onChange={handleStreamIdChange}
-          />
-          <label
-            className='block text-sm font-medium text-gray-700 mt-1'
-            htmlFor='streamId'
-          >
-            Enter Stream Id
-          </label>
-        </div>
+        <div className='mb-3 w-full max-w-md'></div>
         <div className='flex justify-center'>
           {!playing ? (
             <Button
