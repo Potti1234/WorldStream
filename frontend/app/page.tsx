@@ -231,7 +231,7 @@ export default function App () {
               6
             )})`,
             avatar: `/placeholder.svg?seed=${apiStream.streamId}&height=40&width=40`,
-            title: `Live: ${apiStream.streamId}`,
+            title: `Stream ${index + 1}`,
             category: 'Live Stream',
             viewers: Math.floor(Math.random() * 5000) + 100,
             isLive: true,
