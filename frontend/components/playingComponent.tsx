@@ -192,15 +192,11 @@ const PlayingComponent = ({
         style={{
           width: '100%',
           height: 'auto',
-          maxHeight: '70vh',
-          display: websocketConnected ? 'block' : 'none'
+          maxHeight: '70vh'
         }}
       >
         Your browser does not support the video tag.
       </video>
-      {!websocketConnected && (
-        <p className='text-white'>Connecting to stream...</p>
-      )}
     </div>
   )
 }

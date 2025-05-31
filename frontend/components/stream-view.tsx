@@ -508,14 +508,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
 
       <div className='p-4 border-b border-gray-200'>
         <h2 className='font-medium text-sm mb-1'>{streamer.title}</h2>
-        <p className='text-xs text-gray-500 mb-1'>
-          Stream Text ID: {streamer.id}
-        </p>
-        {currentApiStream && currentApiStream.id && (
-          <p className='text-xs text-gray-400 mb-2'>
-            Stream DB ID: {currentApiStream.id}
-          </p>
-        )}
         <Badge variant='secondary' className='text-xs rounded-full'>
           {streamer.category}
         </Badge>
