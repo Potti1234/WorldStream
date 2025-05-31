@@ -15,7 +15,7 @@ import { Slider } from '@/components/ui/slider'
 import { DashboardHeader } from './dashboard-header'
 import { DashboardStats } from './dashboard-stats'
 import { ChatActivityMonitor } from './chat-activity-monitor'
-import { StreamerTipModal } from './streamer-tip-modal'
+import { TipCommentModal } from './tip-comment-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import { StreamSettingsView } from './stream-settings-view'
 import type { DashboardMessage } from '@/app/types'
@@ -163,8 +163,8 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     setStreamerTipModalOpen(true)
   }
 
-  const handleSubmitStreamerTip = (tipAmount: string) => {
-    if (!selectedMessageForTip) return
+  const handleSubmitStreamerTip = (messageId: string, tipAmount: string) => {
+    if (!selectedMessageForTip || selectedMessageForTip.id !== messageId) return
     const amount = Number.parseFloat(tipAmount)
     if (isNaN(amount) || amount <= 0) return
 
@@ -387,7 +387,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         </TooltipProvider>
       </div>
 
-      <StreamerTipModal
+      <TipCommentModal
         isOpen={streamerTipModalOpen}
         selectedMessage={selectedMessageForTip}
         onClose={() => setStreamerTipModalOpen(false)}
