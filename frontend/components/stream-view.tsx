@@ -12,13 +12,16 @@ import {
   Send,
   DollarSign,
   Users,
-  MessageCircle
+  MessageCircle,
+  PlayCircle,
+  PauseCircle
 } from 'lucide-react'
 import { Streamer, ChatMessage } from '@/app/types'
 import { StreamViewHeader } from './stream-view-header'
 import { ChatMessageList } from './chat-message-list'
 import { ChatInputArea } from './chat-input-area'
 import { TipCommentModal } from './tip-comment-modal'
+import PlayingComponent from './playingComponent'
 
 interface StreamViewProps {
   streamer: Streamer
@@ -171,6 +174,8 @@ const mockMessages: ChatMessage[] = [
   }
 ]
 
+const REMOTE_VIDEO_ELEMENT_ID_PREFIX = 'remoteVideo-'
+
 export function StreamView ({ streamer, onBack }: StreamViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(mockMessages)
   const [tipModalOpen, setTipModalOpen] = useState(false)
@@ -178,10 +183,15 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
     null
   )
   const [userMessageIds, setUserMessageIds] = useState<string[]>([])
-  const [inputAreaHeight, setInputAreaHeight] = useState(64) // Default height for input area
+  const [inputAreaHeight, setInputAreaHeight] = useState(64)
   const inputAreaRef = useRef<HTMLDivElement>(null)
 
-  // Update input area height when it changes
+  const [shouldPlayStream, setShouldPlayStream] = useState(false)
+  const [isActuallyPlaying, setIsActuallyPlaying] = useState(false)
+  const [playbackError, setPlaybackError] = useState<string | null>(null)
+
+  const videoElementId = REMOTE_VIDEO_ELEMENT_ID_PREFIX + streamer.id
+
   useEffect(() => {
     if (inputAreaRef.current) {
       const observer = new ResizeObserver(entries => {
@@ -197,6 +207,15 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
       }
     }
   }, [])
+
+  useEffect(() => {
+    if (streamer && streamer.id) {
+      setShouldPlayStream(true)
+    }
+    return () => {
+      setShouldPlayStream(false)
+    }
+  }, [streamer])
 
   const handleSendMessage = (messageContent: string) => {
     if (!messageContent.trim()) return
@@ -215,7 +234,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
     setMessages(prev => [...prev, newMessage])
     setUserMessageIds(prev => [...prev, messageId])
 
-    // Simulate community tips on user's message
     simulateCommunityTips(messageId)
   }
 
@@ -263,7 +281,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
       })
     )
 
-    // Add a system message about the tip
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
       username: 'System',
@@ -293,9 +310,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
 
     const tipAmounts = [1, 2, 3, 5]
 
-    // Random chance of getting tips (70% chance)
     if (Math.random() > 0.3) {
-      // Random delay between 2-8 seconds
       const delay = Math.random() * 6000 + 2000
 
       setTimeout(() => {
@@ -319,7 +334,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
           })
         )
 
-        // Add a notification message
         const notificationMessage: ChatMessage = {
           id: Date.now().toString(),
           username: 'System',
@@ -333,7 +347,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         setMessages(prev => [...prev, notificationMessage])
       }, delay)
 
-      // Chance of getting a second tip (30% chance)
       if (Math.random() > 0.7) {
         const secondDelay = delay + Math.random() * 5000 + 3000
 
@@ -374,12 +387,74 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
     }
   }
 
+  const handlePlaybackStatusUpdate = (
+    isActuallyPlayingUpdate: boolean,
+    activeStreamId: string | null
+  ) => {
+    setIsActuallyPlaying(isActuallyPlayingUpdate)
+    console.log(
+      `StreamView: Playback status: ${isActuallyPlayingUpdate}, Stream ID: ${activeStreamId}`
+    )
+    if (
+      !isActuallyPlayingUpdate &&
+      activeStreamId &&
+      streamer.id === activeStreamId
+    ) {
+      if (!playbackError) {
+        setPlaybackError('Stream ended or is unavailable.')
+      }
+    } else if (isActuallyPlayingUpdate) {
+      setPlaybackError(null)
+    }
+  }
+
+  const togglePlayPause = () => {
+    if (streamer && streamer.id) {
+      setShouldPlayStream(!shouldPlayStream)
+      if (playbackError && shouldPlayStream) setPlaybackError(null)
+    }
+  }
+
+  const CHAT_AREA_TOP_OFFSET = 280
+
   return (
-    <div className='max-w-md mx-auto bg-white min-h-screen relative'>
-      {/* Header */}
+    <div className='max-w-md mx-auto bg-white min-h-screen relative flex flex-col'>
       <StreamViewHeader streamer={streamer} onBack={onBack} />
 
-      {/* Stream Info */}
+      <div className='w-full bg-black relative'>
+        {streamer && streamer.id ? (
+          <PlayingComponent
+            streamIdToPlay={streamer.id}
+            shouldBePlaying={shouldPlayStream}
+            videoElementId={videoElementId}
+            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+          />
+        ) : (
+          <div className='w-full h-48 flex justify-center items-center bg-gray-800 text-white'>
+            <p>No stream selected or stream ID is missing.</p>
+          </div>
+        )}
+        {streamer && streamer.id && (
+          <Button
+            onClick={togglePlayPause}
+            variant='outline'
+            size='icon'
+            className='absolute bottom-2 right-2 bg-black bg-opacity-50 hover:bg-opacity-75 text-white z-10'
+          >
+            {isActuallyPlaying ? (
+              <PauseCircle size={24} />
+            ) : (
+              <PlayCircle size={24} />
+            )}
+          </Button>
+        )}
+        {playbackError && (
+          <div className='absolute bottom-10 left-1/2 -translate-x-1/2 bg-red-500 text-white p-2 rounded text-xs z-10'>
+            {playbackError}
+          </div>
+        )}
+      </div>
+
       <div className='p-4 border-b border-gray-200'>
         <h2 className='font-medium text-sm mb-1'>{streamer.title}</h2>
         <p className='text-xs text-gray-500 mb-2'>Stream ID: {streamer.id}</p>
@@ -388,8 +463,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         </Badge>
       </div>
 
-      {/* Chat */}
-      <div className='flex flex-col' style={{ height: 'calc(100vh - 200px)' }}>
+      <div className='flex flex-col flex-grow overflow-hidden'>
         <div className='flex items-center gap-2 p-3 border-b border-gray-200'>
           <MessageCircle className='w-4 h-4' />
           <span className='text-sm font-medium'>Live Chat</span>
@@ -401,7 +475,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         />
       </div>
 
-      {/* Fixed Input Area at Bottom */}
       <ChatInputArea
         onSendMessage={handleSendMessage}
         onSendTip={handleSendTip}
@@ -409,7 +482,6 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         onHeightChange={setInputAreaHeight}
       />
 
-      {/* Tip Modal */}
       <TipCommentModal
         isOpen={tipModalOpen}
         selectedMessage={selectedMessage}
