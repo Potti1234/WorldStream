@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { clientLogger } from '@/lib/client-logger'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { DollarSign, Send, Heart } from 'lucide-react'
+import { DollarSign, ArrowUp, Heart } from 'lucide-react'
 import { createMessage } from '@/lib/api-message'
 import type { Stream } from '@/lib/api-stream'
 
@@ -139,7 +139,7 @@ export function ChatInputArea ({
               disabled={!message.trim() || !stream || !stream.id}
               className='flex-shrink-0 rounded-full'
             >
-              <Send className='w-4 h-4' />
+              <ArrowUp className='w-4 h-4' />
             </Button>
           </>
         ) : (
