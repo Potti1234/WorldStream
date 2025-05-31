@@ -54,3 +54,21 @@ export const getAllStreams = async (): Promise<Stream[]> => {
     return [];
   }
 };
+
+export const getStreamByTextId = async (textStreamId: string): Promise<Stream | null> => {
+  try {
+    const records = await pb.collection('stream').getFullList<Stream>({
+      filter: `streamId = "${textStreamId}"`,
+    });
+
+    if (records.length === 0) {
+      console.warn(`Stream with textStreamId "${textStreamId}" not found.`);
+      return null;
+    }
+    // Assuming streamId is unique, return the first match
+    return records[0];
+  } catch (error) {
+    console.error('Failed to get stream by textStreamId:', error);
+    return null;
+  }
+};

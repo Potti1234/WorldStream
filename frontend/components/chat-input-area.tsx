@@ -4,19 +4,23 @@ import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DollarSign, Send, Heart } from 'lucide-react'
+import { createMessage } from '@/lib/api-message'
+import type { Stream } from '@/lib/api-stream'
 
 interface ChatInputAreaProps {
   onSendMessage: (message: string) => void
   onSendTip: (message: string, tipAmount: string) => void
   inputAreaRef: React.RefObject<HTMLDivElement | null>
   onHeightChange: (height: number) => void
+  stream: Stream | null
 }
 
 export function ChatInputArea ({
   onSendMessage,
   onSendTip,
   inputAreaRef,
-  onHeightChange
+  onHeightChange,
+  stream
 }: ChatInputAreaProps) {
   const [message, setMessage] = useState('')
   const [tipAmount, setTipAmount] = useState('')
@@ -36,15 +40,21 @@ export function ChatInputArea ({
     }
   }, [inputAreaRef, onHeightChange, showTipInput])
 
-  const handleInternalSendMessage = () => {
-    if (!message.trim()) return
-    onSendMessage(message.trim())
-    setMessage('')
+  const handleInternalSendMessage = async () => {
+    if (!message.trim() || !stream || !stream.id) return
+    const sentMessage = await createMessage(message.trim(), stream.id)
+    if (sentMessage) {
+      setMessage('')
+    } else {
+      console.error('Failed to send message')
+    }
   }
 
-  const handleInternalSendTip = () => {
-    if (!tipAmount || !message.trim()) return
+  const handleInternalSendTip = async () => {
+    if (!tipAmount || !message.trim() || !stream || !stream.id) return
+
     onSendTip(message.trim(), tipAmount)
+
     setMessage('')
     setTipAmount('')
     setShowTipInput(false)
@@ -106,11 +116,10 @@ export function ChatInputArea ({
           onChange={e => setMessage(e.target.value)}
           onKeyPress={e =>
             e.key === 'Enter' &&
-            (showTipInput
-              ? handleInternalSendTip()
-              : handleInternalSendMessage())
+            (showTipInput ? handleInternalSendTip : handleInternalSendMessage)
           }
           className='flex-1 rounded-full'
+          disabled={!stream || !stream.id}
         />
         {!showTipInput ? (
           <>
@@ -119,13 +128,14 @@ export function ChatInputArea ({
               size='icon'
               onClick={() => setShowTipInput(true)}
               className='flex-shrink-0 rounded-full'
+              disabled={!stream || !stream.id}
             >
               <DollarSign className='w-4 h-4' />
             </Button>
             <Button
               size='icon'
               onClick={handleInternalSendMessage}
-              disabled={!message.trim()}
+              disabled={!message.trim() || !stream || !stream.id}
               className='flex-shrink-0 rounded-full'
             >
               <Send className='w-4 h-4' />
@@ -135,7 +145,7 @@ export function ChatInputArea ({
           <Button
             size='icon'
             onClick={handleInternalSendTip}
-            disabled={!message.trim() || !tipAmount}
+            disabled={!message.trim() || !tipAmount || !stream || !stream.id}
             className='flex-shrink-0 bg-green-500 hover:bg-green-600 rounded-full'
           >
             <Heart className='w-4 h-4' />

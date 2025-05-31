@@ -22,6 +22,7 @@ import { StreamViewHeader } from './stream-view-header'
 import { ChatMessageList } from './chat-message-list'
 import { ChatInputArea } from './chat-input-area'
 import { TipCommentModal } from './tip-comment-modal'
+import { getStreamByTextId, Stream as ApiStream } from '@/lib/api-stream'
 
 const PlayingComponent = dynamic(() => import('./playingComponent'), {
   ssr: false,
@@ -200,11 +201,30 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
   const [playbackError, setPlaybackError] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
 
+  const [currentApiStream, setCurrentApiStream] = useState<ApiStream | null>(
+    null
+  )
+
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   const videoElementId = REMOTE_VIDEO_ELEMENT_ID_PREFIX + streamer.id
+
+  useEffect(() => {
+    if (streamer && streamer.id && isClient) {
+      const fetchStreamData = async () => {
+        const apiStream = await getStreamByTextId(streamer.id)
+        setCurrentApiStream(apiStream)
+        if (!apiStream) {
+          console.error(
+            `Stream with textual ID ${streamer.id} not found in DB.`
+          )
+        }
+      }
+      fetchStreamData()
+    }
+  }, [streamer, isClient])
 
   useEffect(() => {
     if (inputAreaRef.current) {
@@ -475,7 +495,14 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
 
       <div className='p-4 border-b border-gray-200'>
         <h2 className='font-medium text-sm mb-1'>{streamer.title}</h2>
-        <p className='text-xs text-gray-500 mb-2'>Stream ID: {streamer.id}</p>
+        <p className='text-xs text-gray-500 mb-1'>
+          Stream Text ID: {streamer.id}
+        </p>
+        {currentApiStream && currentApiStream.id && (
+          <p className='text-xs text-gray-400 mb-2'>
+            Stream DB ID: {currentApiStream.id}
+          </p>
+        )}
         <Badge variant='secondary' className='text-xs rounded-full'>
           {streamer.category}
         </Badge>
@@ -487,9 +514,9 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
           <span className='text-sm font-medium'>Live Chat</span>
         </div>
         <ChatMessageList
-          messages={messages}
           inputAreaHeight={inputAreaHeight}
           handleTipComment={handleTipComment}
+          streamId={currentApiStream?.id}
         />
       </div>
 
@@ -498,6 +525,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         onSendTip={handleSendTip}
         inputAreaRef={inputAreaRef}
         onHeightChange={setInputAreaHeight}
+        stream={currentApiStream}
       />
 
       <TipCommentModal

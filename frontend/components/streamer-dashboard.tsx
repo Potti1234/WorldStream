@@ -19,6 +19,7 @@ import { TipCommentModal } from './tip-comment-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import { StreamSettingsView } from './stream-settings-view'
 import type { DashboardMessage } from '@/app/types'
+import { getStreamByTextId, Stream as ApiStream } from '@/lib/api-stream'
 
 const StreamComponent = dynamic(() => import('./streamComponent'), {
   ssr: false,
@@ -40,6 +41,8 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   const [streamIdForComponent, setStreamIdForComponent] = useState(
     'streamerDashboardStream'
   )
+  const [dashboardApiStream, setDashboardApiStream] =
+    useState<ApiStream | null>(null)
   const [streamTitle, setStreamTitle] = useState(
     'Epic Valorant Ranked Climb! Road to Radiant 🔥'
   )
@@ -58,35 +61,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   const [sprinkleInProgress, setSprinkleInProgress] = useState(false)
   const [sprinkleComplete, setSprinkleComplete] = useState(false)
 
-  const [recentMessages, setRecentMessages] = useState<DashboardMessage[]>([
-    {
-      id: '1',
-      username: 'viewer123',
-      message: 'Great stream!',
-      timestamp: '3:45 PM'
-    },
-    {
-      id: '2',
-      username: 'gamer_fan',
-      message: 'Amazing gameplay!',
-      timestamp: '3:42 PM'
-    },
-    {
-      id: '3',
-      username: 'new_sub',
-      message: 'Just subscribed!',
-      timestamp: '3:40 PM'
-    },
-    {
-      id: '4',
-      username: 'TipMaster',
-      message: 'Here is a tip!',
-      timestamp: '3:38 PM',
-      isTip: true,
-      streamerTip: 5,
-      isStreamerTip: true
-    }
-  ])
+  const [recentMessages, setRecentMessages] = useState<DashboardMessage[]>([])
 
   const [isClient, setIsClient] = useState(false)
 
@@ -95,40 +70,19 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   }, [])
 
   useEffect(() => {
-    if (!actuallyStreaming) {
-      setViewerCount(0)
-      return
-    }
-    const interval = setInterval(
-      () =>
-        setViewerCount(prev =>
-          Math.max(0, prev + Math.floor(Math.random() * 21) - 10)
-        ),
-      5000
-    )
-    return () => clearInterval(interval)
-  }, [actuallyStreaming])
-
-  useEffect(() => {
-    if (!chatEnabled || !actuallyStreaming) return
-    const names = ['alpha', 'beta', 'gamma', 'delta', 'epsilon']
-    const texts = ['Nice one!', 'Keep it up!', 'Awesome stream!', 'So cool!']
-    const interval = setInterval(() => {
-      const newMessage: DashboardMessage = {
-        id: Date.now().toString(),
-        username: `${
-          names[Math.floor(Math.random() * names.length)]
-        }${Math.floor(Math.random() * 100)}`,
-        message: texts[Math.floor(Math.random() * texts.length)],
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
+    if (streamIdForComponent && isClient) {
+      const fetchDashboardStream = async () => {
+        const apiStream = await getStreamByTextId(streamIdForComponent)
+        setDashboardApiStream(apiStream)
+        if (!apiStream) {
+          console.error(
+            `Dashboard stream with textual ID ${streamIdForComponent} not found.`
+          )
+        }
       }
-      setRecentMessages(prev => [newMessage, ...prev.slice(0, 9)])
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [chatEnabled, actuallyStreaming])
+      fetchDashboardStream()
+    }
+  }, [streamIdForComponent, isClient])
 
   const handleToggleLive = () => {
     setIsLive(!isLive)
@@ -153,10 +107,12 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   }
 
   const handleSaveTitle = () => setIsEditingTitle(false)
-  const handleDeleteMessage = (id: string) =>
-    setRecentMessages(prev => prev.filter(msg => msg.id !== id))
-  const handleBanUser = (username: string) =>
-    setRecentMessages(prev => prev.filter(msg => msg.username !== username))
+  const handleDeleteMessage = (id: string) => {
+    console.log('Dashboard: onDeleteMessage prop called for ID:', id)
+  }
+  const handleBanUser = (username: string) => {
+    console.log('Dashboard: onBanUser prop called for user:', username)
+  }
 
   const handleOpenTipCommentModal = (message: DashboardMessage) => {
     setSelectedMessageForTip(message)
@@ -304,7 +260,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         onToggleAppMode={onToggleAppMode}
         onShowSettings={() => setShowSettings(true)}
       />
-      
+
       {/* Stream Title Section */}
       <div className='p-4 border-b border-gray-200'>
         <div className='text-sm text-gray-500 mb-1'>Stream Title</div>
@@ -321,7 +277,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
           />
         </div>
       )}
-      
+
       <DashboardStats
         viewerCount={viewerCount}
         totalTips={totalTips}
@@ -332,10 +288,10 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
 
       <ChatActivityMonitor
         chatEnabled={chatEnabled}
-        recentMessages={recentMessages}
         onDeleteMessage={handleDeleteMessage}
         onBanUser={handleBanUser}
         onTipComment={handleOpenTipCommentModal}
+        streamId={dashboardApiStream?.id}
       />
 
       <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center w-[calc(100%-2rem)] max-w-md z-20'>

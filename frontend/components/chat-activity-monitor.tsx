@@ -1,29 +1,120 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DollarSign, Trash2, Ban, MoreVertical } from 'lucide-react'
 import { DashboardMessage } from '@/app/types'
+import {
+  getAllMessagesForStream,
+  subscribeToMessages,
+  Message as ApiMessage
+} from '@/lib/api-message'
 
 interface ChatActivityMonitorProps {
   chatEnabled: boolean
-  recentMessages: DashboardMessage[]
   onDeleteMessage: (id: string) => void
   onBanUser: (username: string) => void
   onTipComment: (message: DashboardMessage) => void
+  streamId: string | undefined
 }
+
+// Helper to map API Message to DashboardMessage
+const mapApiMessageToDashboardMessage = (
+  apiMsg: ApiMessage
+): DashboardMessage => ({
+  id: apiMsg.id || `mock-dash-${Date.now()}-${Math.random()}`,
+  username: `User${
+    apiMsg.id ? apiMsg.id.slice(-2) : Math.floor(Math.random() * 100)
+  }`, // Mock username
+  message: apiMsg.text,
+  timestamp: apiMsg.created
+    ? new Date(apiMsg.created).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), // Mock timestamp
+  isTip: false, // Mock data
+  streamerTip: undefined, // Mock data
+  isStreamerTip: false // Mock data
+})
 
 export function ChatActivityMonitor ({
   chatEnabled,
-  recentMessages,
   onDeleteMessage,
   onBanUser,
-  onTipComment
+  onTipComment,
+  streamId
 }: ChatActivityMonitorProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const [dashboardMessages, setDashboardMessages] = useState<
+    DashboardMessage[]
+  >([])
+
+  // Fetch initial messages
+  useEffect(() => {
+    if (!streamId) return
+
+    const fetchMessages = async () => {
+      const initialApiMessages = await getAllMessagesForStream(streamId)
+      const mappedMessages = initialApiMessages.map(
+        mapApiMessageToDashboardMessage
+      )
+      // Sort by timestamp descending for activity monitor (newest first)
+      mappedMessages.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      )
+      setDashboardMessages(mappedMessages)
+    }
+
+    fetchMessages()
+  }, [streamId])
+
+  // Subscribe to new messages - UPDATED FOR ASYNC SUBSCRIBE
+  useEffect(() => {
+    if (!streamId) return
+
+    let unsubscribe: (() => void) | null = null
+
+    const setupSubscription = async () => {
+      try {
+        unsubscribe = await subscribeToMessages(streamId, newApiMessage => {
+          setDashboardMessages(prevMessages => {
+            const newMappedMessage =
+              mapApiMessageToDashboardMessage(newApiMessage)
+            const updatedMessages = [newMappedMessage, ...prevMessages]
+            return updatedMessages
+          })
+        })
+      } catch (error) {
+        console.error(
+          'Error setting up message subscription in ChatActivityMonitor:',
+          error
+        )
+      }
+    }
+
+    setupSubscription()
+
+    // Return cleanup function
+    return () => {
+      if (unsubscribe) {
+        console.log(
+          '[ChatActivityMonitor] Cleaning up subscription for streamId:',
+          streamId
+        )
+        unsubscribe()
+      } else {
+        console.log(
+          '[ChatActivityMonitor] No unsubscribe function available on cleanup for streamId:',
+          streamId
+        )
+      }
+    }
+  }, [streamId])
 
   const toggleMenu = (messageId: string) => {
     setOpenMenuId(openMenuId === messageId ? null : messageId)
@@ -31,11 +122,13 @@ export function ChatActivityMonitor ({
 
   const handleDeleteMessage = (id: string) => {
     onDeleteMessage(id)
+    setDashboardMessages(prev => prev.filter(msg => msg.id !== id))
     setOpenMenuId(null)
   }
 
   const handleBanUser = (username: string) => {
     onBanUser(username)
+    setDashboardMessages(prev => prev.filter(msg => msg.username !== username))
     setOpenMenuId(null)
   }
 
@@ -55,7 +148,7 @@ export function ChatActivityMonitor ({
 
       <ScrollArea className='h-[450px]'>
         <div className='p-4 pb-16'>
-          {recentMessages.map(msg => (
+          {dashboardMessages.map(msg => (
             <div
               key={msg.id}
               className={`py-2 border-b border-gray-100 last:border-0 ${
@@ -103,7 +196,7 @@ export function ChatActivityMonitor ({
                       <DollarSign className='h-4 w-4' />
                     </Button>
                   )}
-                  
+
                   {msg.username !== 'System' && (
                     <div className='relative'>
                       <Button
@@ -114,7 +207,7 @@ export function ChatActivityMonitor ({
                       >
                         <MoreVertical className='h-4 w-4' />
                       </Button>
-                      
+
                       {openMenuId === msg.id && (
                         <div className='absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 min-w-[120px]'>
                           <button
