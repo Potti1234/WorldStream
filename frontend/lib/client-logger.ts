@@ -10,6 +10,11 @@ type LogPayload = {
 export const clientLogger = {
   async log(level: LogLevel, message: string, data?: any, source?: string) {
     try {
+      // Don't send debug logs to server in production
+      if (level === LogLevel.DEBUG && process.env.NODE_ENV === 'production') {
+        return;
+      }
+      
       await fetch('/api/log', {
         method: 'POST',
         headers: {
@@ -38,7 +43,10 @@ export const clientLogger = {
   },
 
   error(message: string, data?: any, source?: string) {
-    console.error(`[${source || 'client'}] ${message}`, data || '');
+    // Only log to console in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(`[${source || 'client'}] ${message}`, data || '');
+    }
     return this.log(LogLevel.ERROR, message, data, source);
   },
 

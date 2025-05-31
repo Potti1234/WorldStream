@@ -1,5 +1,6 @@
 "use client"
 
+import { clientLogger } from '@/lib/client-logger';
 import pb from '@/lib/pocketbase';
 import { getStreamByTextId } from './api-stream';
 
@@ -19,7 +20,7 @@ export const getAllMessagesForStream = async (streamId: string): Promise<Message
     });
     return records;
   } catch (error) {
-    console.error('Failed to get messages for stream:', error);
+    clientLogger.error('Failed to get messages for stream', { error }, 'api-message');
     return [];
   }
 };
@@ -60,11 +61,11 @@ export const subscribeToMessages = async (
         unsubscribeFunc(); // Call the actual unsubscribe function from SDK
         console.log(`[Realtime] Successfully called unsubscribe for stream DB ID: ${streamId}`);
       } catch (error) {
-        console.error(`[Realtime] Error during unsubscribe for stream DB ID: ${streamId}:`, error);
+        clientLogger.error('Error during unsubscribe for stream', { streamId, error }, 'api-message');
       }
     };
   } catch (error) {
-    console.error(`[Realtime] Failed to subscribe to messages for stream DB ID: ${streamId}:`, error);
+    clientLogger.error('Failed to subscribe to messages for stream', { streamId, error }, 'api-message');
     // If subscription fails, return a no-op function for unsubscription
     return () => {
       console.warn(`[Realtime] Subscription had failed for stream DB ID: ${streamId}, unsubscription is a no-op.`);
@@ -79,7 +80,7 @@ export const createMessage = async (text: string, streamId: string): Promise<Mes
     const record = await pb.collection('message').create<Message>(data);
     return record;
   } catch (error) {
-    console.error('Failed to create message:', error);
+    clientLogger.error('Failed to create message', { error, streamId }, 'api-message');
     return null;
   }
 }; 

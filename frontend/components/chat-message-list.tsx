@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -93,9 +94,10 @@ export function ChatMessageList ({
           ])
         })
       } catch (error) {
-        console.error(
-          'Error setting up message subscription in ChatMessageList:',
-          error
+        clientLogger.error(
+          'Error setting up message subscription in ChatMessageList',
+          { error },
+          'ChatMessageList'
         )
       }
     }

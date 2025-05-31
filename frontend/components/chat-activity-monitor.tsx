@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -90,9 +91,10 @@ export function ChatActivityMonitor ({
           })
         })
       } catch (error) {
-        console.error(
-          'Error setting up message subscription in ChatActivityMonitor:',
-          error
+        clientLogger.error(
+          'Error setting up message subscription in ChatActivityMonitor',
+          { error },
+          'ChatActivityMonitor'
         )
       }
     }

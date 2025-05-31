@@ -218,8 +218,10 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         const apiStream = await getStreamByTextId(streamer.id)
         setCurrentApiStream(apiStream)
         if (!apiStream) {
-          console.error(
-            `Stream with textual ID ${streamer.id} not found in DB.`
+          clientLogger.error(
+            `Stream with textual ID ${streamer.id} not found in DB.`,
+            { streamId: streamer.id },
+            'StreamView'
           )
         }
       }

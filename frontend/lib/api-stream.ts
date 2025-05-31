@@ -69,7 +69,7 @@ export const getStreamByTextId = async (textStreamId: string): Promise<Stream | 
     // Assuming streamId is unique, return the first match
     return records[0];
   } catch (error) {
-    console.error('Failed to get stream by textStreamId:', error);
+    clientLogger.error('Failed to get stream by textStreamId', { error });
     return null;
   }
 };

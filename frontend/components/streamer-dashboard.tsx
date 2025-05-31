@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
 import { Settings, Sparkles, Video, VideoOff, Edit, Save } from 'lucide-react'
@@ -76,8 +77,10 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         const apiStream = await getStreamByTextId(streamIdForComponent)
         setDashboardApiStream(apiStream)
         if (!apiStream) {
-          console.error(
-            `Dashboard stream with textual ID ${streamIdForComponent} not found.`
+          clientLogger.error(
+            `Dashboard stream with textual ID ${streamIdForComponent} not found.`,
+            { streamId: streamIdForComponent },
+            'StreamerDashboard'
           )
         }
       }

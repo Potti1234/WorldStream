@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { clientLogger } from '@/lib/client-logger'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DollarSign, Send, Heart } from 'lucide-react'
@@ -46,7 +47,7 @@ export function ChatInputArea ({
     if (sentMessage) {
       setMessage('')
     } else {
-      console.error('Failed to send message')
+      clientLogger.error('Failed to send message', { streamId: stream.id }, 'ChatInputArea')
     }
   }
 

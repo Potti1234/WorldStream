@@ -1,3 +1,5 @@
+import { clientLogger } from './client-logger';
+
 export enum LogLevel {
   INFO = 'INFO',
   WARN = 'WARN',
@@ -36,12 +38,16 @@ class Logger {
       source
     };
 
-    // Log to console
-    const logMethod = level === LogLevel.ERROR ? console.error :
-                    level === LogLevel.WARN ? console.warn :
-                    level === LogLevel.DEBUG ? console.debug : console.log;
-    
-    logMethod(`[${logEntry.timestamp}] [${level}] ${source ? `[${source}] ` : ''}${message}`, data || '');
+    // Log to console based on level
+    if (level === LogLevel.ERROR) {
+      clientLogger.error(message, data, source);
+    } else if (level === LogLevel.WARN) {
+      console.warn(`[${logEntry.timestamp}] [${level}] ${source ? `[${source}] ` : ''}${message}`, data || '');
+    } else if (level === LogLevel.DEBUG) {
+      console.debug(`[${logEntry.timestamp}] [${level}] ${source ? `[${source}] ` : ''}${message}`, data || '');
+    } else {
+      console.log(`[${logEntry.timestamp}] [${level}] ${source ? `[${source}] ` : ''}${message}`, data || '');
+    }
 
     // Add to in-memory logs
     this.logs.push(logEntry);
