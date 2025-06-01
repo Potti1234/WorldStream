@@ -18,6 +18,7 @@ interface ChatMessageListProps {
   inputAreaHeight: number
   handleTipComment: (message: ChatMessage) => void
   streamId: string | undefined // Database ID of the stream
+  messages: ChatMessage[] // Local messages from StreamView
 }
 
 const mapApiMessageToChatMessage = (apiMsg: ApiMessage): ChatMessage => ({
@@ -32,17 +33,18 @@ const mapApiMessageToChatMessage = (apiMsg: ApiMessage): ChatMessage => ({
         minute: '2-digit'
       })
     : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-  isTip: false,
-  tipAmount: undefined,
-  tipsReceived: [],
-  streamerTip: undefined,
-  isStreamerTip: false
+  isTip: apiMsg.isTip || false,
+  tipAmount: apiMsg.tipAmount,
+  tipsReceived: apiMsg.tipsReceived || [],
+  streamerTip: apiMsg.streamerTip,
+  isStreamerTip: apiMsg.isStreamerTip || false
 })
 
 export function ChatMessageList ({
   inputAreaHeight,
   handleTipComment,
-  streamId
+  streamId,
+  messages
 }: ChatMessageListProps) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -91,7 +93,12 @@ export function ChatMessageList ({
         isAtBottomRef.current = true // Default to true if viewport not found
       }
 
-      setChatMessages(mappedMessages)
+      // Merge API messages with local messages
+      const localMessageIds = new Set(messages.map(m => m.id))
+      const apiMessagesWithoutLocal = mappedMessages.filter(
+        m => !localMessageIds.has(m.id)
+      )
+      setChatMessages([...messages, ...apiMessagesWithoutLocal])
     }
 
     fetchMessages() // Initial fetch
@@ -101,7 +108,7 @@ export function ChatMessageList ({
       console.log(`[Polling] Clearing interval for stream DB ID: ${streamId}`)
       clearInterval(intervalId)
     }
-  }, [streamId])
+  }, [streamId, messages]) // Add messages to dependency array
 
   // Removed the useEffect for subscribeToMessages/unsubscribeFromMessages as polling is now used for display
 

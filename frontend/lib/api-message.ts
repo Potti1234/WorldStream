@@ -8,8 +8,12 @@ export interface Message {
   id?: string;
   text: string;
   streamId: string; // Reference to the stream
-  // Add other message properties here if needed, e.g., sender, timestamp
   created?: string; // PocketBase automatically adds created/updated timestamps
+  isTip?: boolean;
+  tipAmount?: number;
+  tipsReceived?: { username: string; amount: number }[];
+  streamerTip?: number;
+  isStreamerTip?: boolean;
 }
 
 export const getAllMessagesForStream = async (streamId: string): Promise<Message[]> => {

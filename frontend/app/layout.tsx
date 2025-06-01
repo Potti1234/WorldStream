@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
-import { MiniKitProvider } from '@worldcoin/minikit-js/minikit-provider'
 import { VerificationProvider } from '@/contexts/verification-context'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { clientLogger } from '@/lib/client-logger'
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin']
@@ -27,16 +27,14 @@ export default async function RootLayout ({
 }>) {
   return (
     <html lang='en'>
-      <MiniKitProvider>
-        <VerificationProvider>
-          <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-          >
-            {children}
-            <Toaster />
-          </body>
-        </VerificationProvider>
-      </MiniKitProvider>
+      <VerificationProvider>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        >
+          {children}
+          <Toaster />
+        </body>
+      </VerificationProvider>
     </html>
   )
 }

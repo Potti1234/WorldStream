@@ -27,6 +27,73 @@ import {
 } from '@/lib/api-stream'
 import { createMessage } from '@/lib/api-message'
 
+const mockMessages: DashboardMessage[] = [
+  {
+    id: '1',
+    username: 'viewer123',
+    message: 'Great stream! Keep it up!',
+    timestamp: '2:30 PM'
+  },
+  {
+    id: '2',
+    username: 'fan_girl',
+    message: 'Love your content ❤️',
+    timestamp: '2:31 PM'
+  },
+  {
+    id: '3',
+    username: 'pro_gamer_99',
+    message: 'That was an insane play! How did you do that?',
+    timestamp: '2:32 PM'
+  },
+  {
+    id: '4',
+    username: 'music_lover',
+    message: "What's the name of this song? It's fire 🔥",
+    timestamp: '2:33 PM'
+  },
+  {
+    id: '5',
+    username: 'generous_user',
+    message: 'Thanks for the amazing stream!',
+    timestamp: '2:34 PM',
+    isTip: true,
+    streamerTip: 5
+  },
+  {
+    id: '6',
+    username: 'regular_viewer',
+    message: 'Can you play my favorite song next?',
+    timestamp: '2:35 PM'
+  },
+  {
+    id: '7',
+    username: 'chat_moderator',
+    message: 'Welcome everyone! Remember to be respectful 😊',
+    timestamp: '2:36 PM'
+  },
+  {
+    id: '8',
+    username: 'new_follower',
+    message: 'Just followed! This content is amazing',
+    timestamp: '2:37 PM'
+  },
+  {
+    id: '9',
+    username: 'longtime_fan',
+    message: 'Been watching for 2 years, still the best streamer!',
+    timestamp: '2:38 PM',
+    isTip: true,
+    streamerTip: 3
+  },
+  {
+    id: '10',
+    username: 'question_asker',
+    message: "What's your setup? Your audio quality is perfect",
+    timestamp: '2:39 PM'
+  }
+]
+
 const StreamComponent = dynamic(() => import('./streamComponent'), {
   ssr: false,
   loading: () => (
@@ -65,7 +132,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   const [sprinkleInProgress, setSprinkleInProgress] = useState(false)
   const [sprinkleComplete, setSprinkleComplete] = useState(false)
 
-  const [recentMessages, setRecentMessages] = useState<DashboardMessage[]>([])
+  const [recentMessages, setRecentMessages] = useState<DashboardMessage[]>(mockMessages)
 
   const [isClient, setIsClient] = useState(false)
 
@@ -394,6 +461,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         onBanUser={handleBanUser}
         onTipComment={handleOpenTipCommentModal}
         streamId={dashboardApiStream?.id}
+        messages={recentMessages}
       />
 
       <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center w-[calc(100%-2rem)] max-w-md z-20'>

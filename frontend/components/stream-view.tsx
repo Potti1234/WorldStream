@@ -275,8 +275,9 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
   const handleSendTip = (messageContent: string, tipAmountValue: string) => {
     if (!tipAmountValue || !messageContent.trim()) return
 
+    const messageId = Date.now().toString()
     const newTip: ChatMessage = {
-      id: Date.now().toString(),
+      id: messageId,
       username: 'You',
       message: messageContent.trim(),
       timestamp: new Date().toLocaleTimeString([], {
@@ -284,10 +285,24 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
         minute: '2-digit'
       }),
       isTip: true,
-      tipAmount: Number.parseFloat(tipAmountValue)
+      tipAmount: Number.parseFloat(tipAmountValue),
+      tipsReceived: [{ username: 'You', amount: Number.parseFloat(tipAmountValue) }]
     }
 
     setMessages(prev => [...prev, newTip])
+
+    // Add system message for the tip
+    const systemMessage: ChatMessage = {
+      id: (Date.now() + 1).toString(),
+      username: 'System',
+      message: `You sent a tip of $${tipAmountValue}!`,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    }
+
+    setMessages(prev => [...prev, systemMessage])
   }
 
   const handleTipComment = (message: ChatMessage) => {
@@ -301,21 +316,24 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
     const amount = Number.parseFloat(amountValue)
     if (isNaN(amount) || amount <= 0) return
 
+    // Update the message with the new tip
     setMessages(prev =>
       prev.map(msg => {
         if (msg.id === messageId) {
+          const updatedTips = [...(msg.tipsReceived || [])]
+          updatedTips.push({ username: 'You', amount })
           return {
             ...msg,
-            tipsReceived: [
-              ...(msg.tipsReceived || []),
-              { username: 'You', amount }
-            ]
+            tipsReceived: updatedTips,
+            isTip: true,
+            tipAmount: amount
           }
         }
         return msg
       })
     )
 
+    // Add system message for the tip
     const newMessage: ChatMessage = {
       id: Date.now().toString(),
       username: 'System',
@@ -499,6 +517,7 @@ export function StreamView ({ streamer, onBack }: StreamViewProps) {
           inputAreaHeight={inputAreaHeight}
           handleTipComment={handleTipComment}
           streamId={currentApiStream?.id}
+          messages={messages}
         />
       </div>
 

@@ -19,6 +19,7 @@ interface ChatActivityMonitorProps {
   onBanUser: (username: string) => void
   onTipComment: (message: DashboardMessage) => void
   streamId: string | undefined
+  messages: DashboardMessage[]
 }
 
 // Helper to map API Message to DashboardMessage
@@ -46,16 +47,22 @@ export function ChatActivityMonitor ({
   onDeleteMessage,
   onBanUser,
   onTipComment,
-  streamId
+  streamId,
+  messages
 }: ChatActivityMonitorProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [dashboardMessages, setDashboardMessages] = useState<DashboardMessage[]>([])
+  const [dashboardMessages, setDashboardMessages] = useState<DashboardMessage[]>(messages)
+
+  // Update dashboardMessages when messages prop changes
+  useEffect(() => {
+    setDashboardMessages(messages)
+  }, [messages])
 
   // Polling for messages
   useEffect(() => {
     if (!streamId || !chatEnabled) {
       // Stop polling if chat is disabled
-      setDashboardMessages([]) // Clear messages
+      setDashboardMessages(messages) // Use messages prop instead of clearing
       return
     }
 
@@ -92,7 +99,7 @@ export function ChatActivityMonitor ({
       console.log(`[Polling CAM] Clearing interval for stream DB ID: ${streamId}`)
       clearInterval(intervalId)
     }
-  }, [streamId, chatEnabled])
+  }, [streamId, chatEnabled, messages])
 
   const toggleMenu = (messageId: string) => {
     setOpenMenuId(openMenuId === messageId ? null : messageId)
