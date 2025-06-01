@@ -76,10 +76,18 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         const apiStream = await getStreamByTextId(streamIdForComponent)
         if (!apiStream) {
           const newStream = await createStream(streamIdForComponent)
-          setDashboardApiStream(newStream)
+          if (newStream) {
+            setDashboardApiStream(newStream)
+            clientLogger.info(`[StreamerDashboard] Created new stream with ID: ${newStream.streamId}`, 'StreamerDashboard')
+          } else {
+            clientLogger.error('Failed to create stream', { streamId: streamIdForComponent }, 'StreamerDashboard')
+            return
+          }
         } else {
           setDashboardApiStream(apiStream)
+          clientLogger.info(`[StreamerDashboard] Using existing stream with ID: ${apiStream.streamId}`, 'StreamerDashboard')
         }
+        setIsLive(true)
       } else {
         // Going offline - delete stream
         if (dashboardApiStream?.streamId) {
@@ -87,12 +95,13 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
           const success = await deleteStream(dashboardApiStream.streamId)
           if (success) {
             setDashboardApiStream(null)
+            clientLogger.info(`[StreamerDashboard] Successfully deleted stream with ID: ${dashboardApiStream.streamId}`, 'StreamerDashboard')
           } else {
             clientLogger.error('Failed to delete stream', { streamId: dashboardApiStream.streamId }, 'StreamerDashboard')
           }
         }
+        setIsLive(false)
       }
-      setIsLive(!isLive)
     } catch (error) {
       clientLogger.error('Failed to handle stream state change', { error, streamId: streamIdForComponent }, 'StreamerDashboard')
     }
@@ -106,7 +115,8 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     clientLogger.debug('Stream status update', {
       isActuallyStreaming,
       activeStreamId,
-      intendedStreamId: streamIdForComponent
+      intendedStreamId: streamIdForComponent,
+      dashboardStreamId: dashboardApiStream?.streamId
     }, 'StreamerDashboard')
 
     if (isActuallyStreaming && activeStreamId !== streamIdForComponent) {
@@ -332,7 +342,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         onDeleteMessage={handleDeleteMessage}
         onBanUser={handleBanUser}
         onTipComment={handleOpenTipCommentModal}
-        streamId={dashboardApiStream?.streamId}
+        streamId={dashboardApiStream?.id}
       />
 
       <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center w-[calc(100%-2rem)] max-w-md z-20'>
