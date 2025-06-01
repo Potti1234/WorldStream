@@ -15,7 +15,9 @@ export const clientLogger = {
         return;
       }
       
-      await fetch('/api/log', {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+      // clientLogger.info('APP URL in env', { baseUrl }, 'log')
+      await fetch(`${baseUrl}/api/log`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
