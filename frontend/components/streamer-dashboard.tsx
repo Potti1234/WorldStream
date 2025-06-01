@@ -121,8 +121,8 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   )
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [chatEnabled, setChatEnabled] = useState(true)
-  const [viewerCount, setViewerCount] = useState(0)
-  const [totalTips, setTotalTips] = useState(0)
+  const [viewerCount, setViewerCount] = useState(42) // Mock viewer count
+  const [totalTips, setTotalTips] = useState(128) // Mock total tips
 
   const [streamerTipModalOpen, setStreamerTipModalOpen] = useState(false)
   const [selectedMessageForTip, setSelectedMessageForTip] =
@@ -139,6 +139,20 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   useEffect(() => {
     setIsClient(true)
   }, [])
+
+  // Simulate viewer count changes
+  useEffect(() => {
+    if (isLive) {
+      const interval = setInterval(() => {
+        setViewerCount(prev => {
+          const change = Math.floor(Math.random() * 5) - 2 // Random change between -2 and +2
+          return Math.max(0, prev + change) // Ensure count doesn't go below 0
+        })
+      }, 5000) // Update every 5 seconds
+
+      return () => clearInterval(interval)
+    }
+  }, [isLive])
 
   const handleToggleLive = async () => {
     try {
