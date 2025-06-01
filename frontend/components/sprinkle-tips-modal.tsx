@@ -68,7 +68,7 @@ export function SprinkleTipsModal ({
   return (
     <div className='fixed inset-0 bg-black/50 flex items-center justify-center z-50'>
       <div className='bg-white rounded-lg p-4 w-[90%] max-w-sm'>
-        <h3 className='font-medium mb-2'>Sprinkle Tips to Verified Viewers</h3>
+        <h3 className='font-medium mb-2'>Sprinkle WLD to Verified Viewers</h3>
         <p className='text-sm text-gray-600 mb-4'>
           Randomly distribute tips to verified viewers in your stream. The total
           amount will be divided equally among recipients.
@@ -158,7 +158,7 @@ export function SprinkleTipsModal ({
                 </div>
               ) : (
                 <>
-                  <Sparkles className='h-4 w-4 mr-2' /> Sprinkle Tips
+                  <Sparkles className='h-4 w-4 mr-2' /> Sprinkle WLD
                 </>
               )}
             </Button>
