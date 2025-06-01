@@ -27,6 +27,13 @@ export function StreamerListHeader ({
   filteredStreamersCount,
   showSearchResultsCount
 }: StreamerListHeaderProps) {
+  const handleSearchClick = () => {
+    // Reset verification attempt when clicking the search bar
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('worldstream_verification_attempted')
+    }
+  }
+
   return (
     <div className='sticky top-0 bg-white border-b border-gray-200 p-4 z-10'>
       <div className='flex justify-between items-center mb-2'>
@@ -63,6 +70,7 @@ export function StreamerListHeader ({
           className='pl-10 pr-10 rounded-full'
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
+          onClick={handleSearchClick}
         />
         {searchQuery && (
           <button
