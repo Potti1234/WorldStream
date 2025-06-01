@@ -75,7 +75,6 @@ const StreamComponent = ({
         'StreamComponent'
       )
       webRTCAdaptor.current.publish(streamIdToUseRef.current)
-      handleCreateStreamInternal(streamIdToUseRef.current)
     } else {
       console.warn(
         'Cannot publish: WebRTC Adaptor not ready, websocket not connected, or streamIdToUse not provided.'
@@ -91,7 +90,6 @@ const StreamComponent = ({
         'StreamComponent'
       )
       webRTCAdaptor.current.stop(publishingStream.current)
-      handleDeleteStreamInternal(publishingStream.current)
     } else {
       clientLogger.warn(
         'Cannot stop: WebRTC Adaptor not ready or no stream currently publishing.',

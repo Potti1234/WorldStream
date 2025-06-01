@@ -19,7 +19,7 @@ import { ChatActivityMonitor } from './chat-activity-monitor'
 import { TipCommentModal } from './tip-comment-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import type { DashboardMessage } from '@/app/types'
-import { getStreamByTextId, Stream as ApiStream, createStream } from '@/lib/api-stream'
+import { getStreamByTextId, Stream as ApiStream, createStream, deleteStream } from '@/lib/api-stream'
 import { ChatInputArea } from './chat-input-area'
 import { createMessage } from '@/lib/api-message'
 
@@ -72,32 +72,30 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     setIsClient(true)
   }, [])
 
-  useEffect(() => {
-    if (streamIdForComponent && isClient) {
-      clientLogger.info(`[StreamerDashboard] Initializing dashboard stream with ID: ${streamIdForComponent}`, 'StreamerDashboard')
-      const initializeDashboardStream = async () => {
-        try {
-          // First try to get existing stream
-          let apiStream = await getStreamByTextId(streamIdForComponent)
-          
-          // If stream doesn't exist, create it
-          if (!apiStream) {
-            console.log(`[StreamerDashboard] Creating new stream with ID: ${streamIdForComponent}`)
-            apiStream = await createStream(streamIdForComponent)
-          }
-          
+  const handleToggleLive = async () => {
+    try {
+      if (!isLive) {
+        // Going live - initialize stream
+        clientLogger.info(`[StreamerDashboard] Initializing stream for going live with ID: ${streamIdForComponent}`, 'StreamerDashboard')
+        const apiStream = await getStreamByTextId(streamIdForComponent)
+        if (!apiStream) {
+          const newStream = await createStream(streamIdForComponent)
+          setDashboardApiStream(newStream)
+        } else {
           setDashboardApiStream(apiStream)
-        } catch (error) {
-          clientLogger.error(
-            `Failed to initialize dashboard stream`,
-            { error, streamId: streamIdForComponent },
-            'StreamerDashboard'
-          )
+        }
+      } else {
+        // Going offline - delete stream
+        if (dashboardApiStream?.id) {
+          await deleteStream(dashboardApiStream.id)
+          setDashboardApiStream(null)
         }
       }
-      initializeDashboardStream()
+      setIsLive(!isLive)
+    } catch (error) {
+      clientLogger.error('Failed to initialize stream for going live', { error, streamId: streamIdForComponent }, 'StreamerDashboard')
     }
-  }, [streamIdForComponent, isClient, streamTitle])
+  }
 
   useEffect(() => {
     if (inputAreaRef.current) {
@@ -115,10 +113,6 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     }
   }, [])
 
-  const handleToggleLive = () => {
-    setIsLive(!isLive)
-  }
-
   const handleStreamStatusUpdate = (
     isActuallyStreaming: boolean,
     activeStreamId: string | null
@@ -134,6 +128,13 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     }
     if (!isActuallyStreaming && isLive) {
       setIsLive(false)
+      // Clean up stream when actually stopped
+      if (dashboardApiStream?.id) {
+        deleteStream(dashboardApiStream.id).catch(error => {
+          clientLogger.error('Failed to delete stream', { error, streamId: dashboardApiStream.id }, 'StreamerDashboard')
+        })
+        setDashboardApiStream(null)
+      }
     }
   }
 
