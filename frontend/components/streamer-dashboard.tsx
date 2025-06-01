@@ -20,7 +20,6 @@ import { TipCommentModal } from './tip-comment-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import type { DashboardMessage } from '@/app/types'
 import { getStreamByTextId, Stream as ApiStream, createStream, deleteStream } from '@/lib/api-stream'
-import { ChatInputArea } from './chat-input-area'
 import { createMessage } from '@/lib/api-message'
 
 const StreamComponent = dynamic(() => import('./streamComponent'), {
@@ -65,9 +64,6 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
 
   const [isClient, setIsClient] = useState(false)
 
-  const [inputAreaHeight, setInputAreaHeight] = useState(64)
-  const inputAreaRef = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
     setIsClient(true)
   }, [])
@@ -101,22 +97,6 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
       clientLogger.error('Failed to handle stream state change', { error, streamId: streamIdForComponent }, 'StreamerDashboard')
     }
   }
-
-  useEffect(() => {
-    if (inputAreaRef.current) {
-      const observer = new ResizeObserver(entries => {
-        for (const entry of entries) {
-          setInputAreaHeight(entry.contentRect.height)
-        }
-      })
-
-      observer.observe(inputAreaRef.current)
-
-      return () => {
-        observer.disconnect()
-      }
-    }
-  }, [])
 
   const handleStreamStatusUpdate = (
     isActuallyStreaming: boolean,
