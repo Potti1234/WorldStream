@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { StreamerList } from '@/components/streamer-list'
-import { StreamView } from '@/components/stream-view'
-import { StreamerDashboard } from '@/components/streamer-dashboard'
 import { Streamer } from '@/app/types'
 import { getAllStreams, Stream as ApiStream } from '@/lib/api-stream'
 import { clientLogger } from '@/lib/client-logger'
@@ -54,9 +53,7 @@ const checkMiniKitSupport = () => {
 }
 
 export default function App () {
-  const [selectedStreamer, setSelectedStreamer] = useState<Streamer | null>(
-    null
-  )
+  const router = useRouter()
   const [appMode, setAppMode] = useState<'viewer' | 'streamer'>('viewer')
   const [liveStreams, setLiveStreams] = useState<Streamer[]>([])
   const [isLoadingStreams, setIsLoadingStreams] = useState(true)
@@ -145,16 +142,17 @@ export default function App () {
   }, [appMode, isLoadingStreams])
 
   const handleSelectStreamer = (streamer: Streamer) => {
-    setSelectedStreamer(streamer)
-  }
-
-  const handleBackToList = () => {
-    setSelectedStreamer(null)
+    router.push(`/stream/${streamer.id}`)
   }
 
   const toggleAppMode = () => {
-    setAppMode(appMode === 'viewer' ? 'streamer' : 'viewer')
-    setSelectedStreamer(null)
+    const newMode = appMode === 'viewer' ? 'streamer' : 'viewer'
+    setAppMode(newMode)
+    if (newMode === 'streamer') {
+      router.push('/streamer-view')
+    } else {
+      router.push('/')
+    }
   }
 
   if (appMode === 'viewer' && isLoadingStreams) {
@@ -168,22 +166,20 @@ export default function App () {
   return (
     <div className='min-h-screen bg-gray-50 relative'>
       {appMode === 'viewer' ? (
-        // Viewer App
-        !selectedStreamer ? (
-          <StreamerList
-            streamers={liveStreams}
-            onSelectStreamer={handleSelectStreamer}
-            onToggleAppMode={toggleAppMode}
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
-            appMode={appMode}
-          />
-        ) : (
-          <StreamView streamer={selectedStreamer} onBack={handleBackToList} />
-        )
+        <StreamerList
+          streamers={liveStreams}
+          onSelectStreamer={handleSelectStreamer}
+          onToggleAppMode={toggleAppMode}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+          appMode={appMode}
+        />
       ) : (
-        // Streamer Dashboard
-        <StreamerDashboard onToggleAppMode={toggleAppMode} appMode={appMode} />
+        <div className='min-h-screen bg-gray-50 flex justify-center items-center'>
+          <p className='text-lg text-gray-600'>
+            Redirecting to streamer view...
+          </p>
+        </div>
       )}
     </div>
   )
