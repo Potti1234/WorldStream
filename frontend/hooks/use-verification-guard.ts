@@ -4,6 +4,7 @@ import { clientLogger } from '@/lib/client-logger'
 import { useVerification } from '@/contexts/verification-context'
 
 const VERIFICATION_STORAGE_KEY = 'worldstream_verified'
+const VERIFICATION_ATTEMPTED_KEY = 'worldstream_verification_attempted'
 
 export const useVerificationGuard = () => {
   const [isVerifying, setIsVerifying] = useState(false);
@@ -74,8 +75,8 @@ export const useVerificationGuard = () => {
     action: () => void,
     options: { onSuccess?: () => void; onError?: () => void } = {}
   ) => {
-    // Check localStorage first
-    if (typeof window !== 'undefined' && localStorage.getItem(VERIFICATION_STORAGE_KEY) === 'true') {
+    // If verification has been attempted before, proceed without verification
+    if (typeof window !== 'undefined' && localStorage.getItem(VERIFICATION_ATTEMPTED_KEY) === 'true') {
       action();
       options.onSuccess?.();
       return true;
@@ -86,6 +87,11 @@ export const useVerificationGuard = () => {
       action();
       options.onSuccess?.();
       return true;
+    }
+
+    // Mark that verification has been attempted
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(VERIFICATION_ATTEMPTED_KEY, 'true')
     }
 
     // If not verified, proceed with verification
