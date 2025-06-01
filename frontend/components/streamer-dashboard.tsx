@@ -26,8 +26,6 @@ import {
   deleteStream
 } from '@/lib/api-stream'
 import { createMessage } from '@/lib/api-message'
-import { useVerificationGuard } from '@/hooks/use-verification-guard'
-import { MiniKit, Tokens, tokenToDecimals } from '@worldcoin/minikit-js'
 
 const StreamComponent = dynamic(() => import('./streamComponent'), {
   ssr: false,
@@ -70,7 +68,6 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   const [recentMessages, setRecentMessages] = useState<DashboardMessage[]>([])
 
   const [isClient, setIsClient] = useState(false)
-  const { withVerification } = useVerificationGuard()
 
   useEffect(() => {
     setIsClient(true)
@@ -80,19 +77,13 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     try {
       if (!isLive) {
         // Going live - initialize stream
-        const username = MiniKit.user.username
-        if (!username) {
-          clientLogger.error('No username found', {}, 'StreamerDashboard')
-          return
-        }
-        setStreamIdForComponent(username)
         clientLogger.info(
-          `[StreamerDashboard] Initializing stream for going live with ID: ${username}`,
+          `[StreamerDashboard] Initializing stream for going live with ID: ${streamIdForComponent}`,
           'StreamerDashboard'
         )
-        const apiStream = await getStreamByTextId(username)
+        const apiStream = await getStreamByTextId(streamIdForComponent)
         if (!apiStream) {
-          const newStream = await createStream(username)
+          const newStream = await createStream(streamIdForComponent)
           if (newStream) {
             setDashboardApiStream(newStream)
             clientLogger.info(
@@ -102,7 +93,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
           } else {
             clientLogger.error(
               'Failed to create stream',
-              { streamId: username },
+              { streamId: streamIdForComponent },
               'StreamerDashboard'
             )
             return
@@ -219,104 +210,36 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     setStreamerTipModalOpen(true)
   }
 
-  const handleSubmitStreamerTip = async (
-    messageId: string,
-    tipAmount: string
-  ) => {
+  const handleSubmitStreamerTip = (messageId: string, tipAmount: string) => {
     if (!selectedMessageForTip || selectedMessageForTip.id !== messageId) return
     const amount = Number.parseFloat(tipAmount)
     if (isNaN(amount) || amount <= 0) return
 
-    // Payment Logic Integration
-    try {
-      const userToPay = await MiniKit.getUserByUsername(streamIdForComponent)
-      if (!userToPay || !userToPay.walletAddress) {
-        clientLogger.error(
-          'User or wallet address not found for tipping',
-          { username: streamIdForComponent },
-          'StreamerDashboard'
-        )
-        // Optionally, provide feedback to the streamer UI
-        return
-      }
-
-      const paymentResponse = await fetch('/api/initiate-payment', {
-        method: 'POST'
-      })
-      const { id: paymentId } = await paymentResponse.json()
-
-      const paymentResult = await MiniKit.commandsAsync.pay({
-        reference: paymentId,
-        to: userToPay.walletAddress,
-        tokens: [
-          {
-            symbol: Tokens.WLD, // Assuming WLD token for tips
-            token_amount: tokenToDecimals(amount, Tokens.WLD).toString()
-          }
-        ],
-        description: `Tip from streamer to ${selectedMessageForTip.username}`
-      })
-
-      if (paymentResult.finalPayload.status === 'success') {
-        clientLogger.info(
-          'Streamer tip payment successful',
-          {
-            username: selectedMessageForTip.username,
-            amount,
-            transactionId: paymentResult.finalPayload.transaction_id
-          },
-          'StreamerDashboard'
-        )
-        setRecentMessages(prev =>
-          prev.map(msg =>
-            msg.id === selectedMessageForTip.id
-              ? {
-                  ...msg,
-                  streamerTip: amount,
-                  isTip: true,
-                  isStreamerTip: true
-                }
-              : msg
-          )
-        )
-        const systemMessage: DashboardMessage = {
-          id: Date.now().toString(),
-          username: 'System',
-          message: `Streamer tipped ${
-            selectedMessageForTip.username
-          } $${amount.toFixed(2)}! 🎉`,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit'
-          }),
-          streamerTip: amount,
-          isStreamerTip: true,
-          isTip: true
-        }
-        setRecentMessages(prev => [systemMessage, ...prev.slice(0, 19)])
-        setTotalTips(prev => prev + amount)
-        setStreamerTipModalOpen(false)
-        setSelectedMessageForTip(null)
-      } else {
-        clientLogger.error(
-          'Streamer tip payment failed',
-          {
-            username: selectedMessageForTip.username,
-            amount,
-            error: paymentResult.finalPayload.status
-          },
-          'StreamerDashboard'
-        )
-        // Optionally, provide feedback to the streamer UI about the failed payment
-      }
-    } catch (error) {
-      clientLogger.error(
-        'Error during streamer tip payment process',
-        { username: selectedMessageForTip.username, amount, error },
-        'StreamerDashboard'
+    setRecentMessages(prev =>
+      prev.map(msg =>
+        msg.id === selectedMessageForTip.id
+          ? { ...msg, streamerTip: amount, isTip: true, isStreamerTip: true }
+          : msg
       )
-      // Optionally, provide feedback to the streamer UI about the error
+    )
+    const systemMessage: DashboardMessage = {
+      id: Date.now().toString(),
+      username: 'System',
+      message: `Streamer tipped ${
+        selectedMessageForTip.username
+      } $${amount.toFixed(2)}! 🎉`,
+      timestamp: new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      streamerTip: amount,
+      isStreamerTip: true,
+      isTip: true
     }
+    setRecentMessages(prev => [systemMessage, ...prev.slice(0, 19)])
+    setTotalTips(prev => prev + amount)
+    setStreamerTipModalOpen(false)
+    setSelectedMessageForTip(null)
   }
 
   const handleOpenSprinkleModal = () => {
@@ -462,7 +385,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         totalTips={totalTips}
         recentMessagesCount={recentMessages.length}
         isLive={isLive}
-        onToggleLive={() => withVerification(handleToggleLive)}
+        onToggleLive={handleToggleLive}
       />
 
       <ChatActivityMonitor
