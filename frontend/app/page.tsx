@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider';
 import { StreamerList } from '@/components/streamer-list'
 import { StreamView } from '@/components/stream-view'
 import { StreamerDashboard } from '@/components/streamer-dashboard'
@@ -39,19 +40,19 @@ const generateDisplayName = (streamId: string, index: number) => {
 }
 
 // Function to safely check MiniKit availability
-const checkMiniKitSupport = () => {
-  if (typeof window === 'undefined') return false
+// const checkMiniKitSupport = () => {
+//   if (typeof window === 'undefined') return false
 
-  try {
-    const { MiniKit } = require('@worldcoin/minikit-js')
-    return MiniKit && typeof MiniKit.isInstalled === 'function'
-      ? MiniKit.isInstalled()
-      : false
-  } catch (error) {
-    console.log('MiniKit not available:', error)
-    return false
-  }
-}
+//   try {
+//     const { MiniKit } = require('@worldcoin/minikit-js')
+//     return MiniKit && typeof MiniKit.isInstalled === 'function'
+//       ? MiniKit.isInstalled()
+//       : false
+//   } catch (error) {
+//     console.log('MiniKit not available:', error)
+//     return false
+//   }
+// }
 
 export default function App () {
   const [selectedStreamer, setSelectedStreamer] = useState<Streamer | null>(
@@ -61,6 +62,7 @@ export default function App () {
   const [liveStreams, setLiveStreams] = useState<Streamer[]>([])
   const [isLoadingStreams, setIsLoadingStreams] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const { isInstalled } = useMiniKit()
 
   const fetchStreams = async () => {
     const apiStreams: ApiStream[] = await getAllStreams()
@@ -105,9 +107,7 @@ export default function App () {
 
   // Initial load effect
   useEffect(() => {
-    // Safely check MiniKit support
-    const isWorldApp = checkMiniKitSupport()
-    console.log('Opened in World App?', isWorldApp)
+    clientLogger.info('Opened in World App', { isInstalled }, 'App - Initial load')
 
     const initializeStreams = async () => {
       setIsLoadingStreams(true)
@@ -122,6 +122,7 @@ export default function App () {
 
   // Auto-refresh effect
   useEffect(() => {
+    clientLogger.info('Auto-refreshing streams', { isInstalled }, 'App - Auto-refresh')
     let intervalId: NodeJS.Timeout | null = null
 
     if (appMode === 'viewer' && !isLoadingStreams) {
