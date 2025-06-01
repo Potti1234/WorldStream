@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { clientLogger } from '@/lib/client-logger'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,9 @@ import { ChatActivityMonitor } from './chat-activity-monitor'
 import { TipCommentModal } from './tip-comment-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
 import type { DashboardMessage } from '@/app/types'
-import { getStreamByTextId, Stream as ApiStream } from '@/lib/api-stream'
+import { getStreamByTextId, Stream as ApiStream, createStream } from '@/lib/api-stream'
+import { ChatInputArea } from './chat-input-area'
+import { createMessage } from '@/lib/api-message'
 
 const StreamComponent = dynamic(() => import('./streamComponent'), {
   ssr: false,
@@ -63,26 +65,55 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
 
   const [isClient, setIsClient] = useState(false)
 
+  const [inputAreaHeight, setInputAreaHeight] = useState(64)
+  const inputAreaRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     setIsClient(true)
   }, [])
 
   useEffect(() => {
     if (streamIdForComponent && isClient) {
-      const fetchDashboardStream = async () => {
-        const apiStream = await getStreamByTextId(streamIdForComponent)
-        setDashboardApiStream(apiStream)
-        if (!apiStream) {
+      clientLogger.info(`[StreamerDashboard] Initializing dashboard stream with ID: ${streamIdForComponent}`, 'StreamerDashboard')
+      const initializeDashboardStream = async () => {
+        try {
+          // First try to get existing stream
+          let apiStream = await getStreamByTextId(streamIdForComponent)
+          
+          // If stream doesn't exist, create it
+          if (!apiStream) {
+            console.log(`[StreamerDashboard] Creating new stream with ID: ${streamIdForComponent}`)
+            apiStream = await createStream(streamIdForComponent)
+          }
+          
+          setDashboardApiStream(apiStream)
+        } catch (error) {
           clientLogger.error(
-            `Dashboard stream with textual ID ${streamIdForComponent} not found.`,
-            { streamId: streamIdForComponent },
+            `Failed to initialize dashboard stream`,
+            { error, streamId: streamIdForComponent },
             'StreamerDashboard'
           )
         }
       }
-      fetchDashboardStream()
+      initializeDashboardStream()
     }
-  }, [streamIdForComponent, isClient])
+  }, [streamIdForComponent, isClient, streamTitle])
+
+  useEffect(() => {
+    if (inputAreaRef.current) {
+      const observer = new ResizeObserver(entries => {
+        for (const entry of entries) {
+          setInputAreaHeight(entry.contentRect.height)
+        }
+      })
+
+      observer.observe(inputAreaRef.current)
+
+      return () => {
+        observer.disconnect()
+      }
+    }
+  }, [])
 
   const handleToggleLive = () => {
     setIsLive(!isLive)

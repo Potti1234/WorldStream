@@ -49,9 +49,7 @@ export function ChatActivityMonitor ({
   streamId
 }: ChatActivityMonitorProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
-  const [dashboardMessages, setDashboardMessages] = useState<
-    DashboardMessage[]
-  >([])
+  const [dashboardMessages, setDashboardMessages] = useState<DashboardMessage[]>([])
 
   // Polling for messages
   useEffect(() => {
@@ -62,31 +60,39 @@ export function ChatActivityMonitor ({
     }
 
     const fetchMessages = async () => {
-      console.log(
-        `[Polling CAM] Fetching messages for stream DB ID: ${streamId}`
-      )
-      const initialApiMessages = await getAllMessagesForStream(streamId)
-      const mappedMessages = initialApiMessages.map(
-        mapApiMessageToDashboardMessage
-      )
-      // Sort by timestamp descending for activity monitor (newest first)
-      mappedMessages.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      )
-      setDashboardMessages(mappedMessages)
+      try {
+        console.log(`[Polling CAM] Fetching messages for stream DB ID: ${streamId}`)
+        const initialApiMessages = await getAllMessagesForStream(streamId)
+        const mappedMessages = initialApiMessages.map(mapApiMessageToDashboardMessage)
+        
+        // Sort by timestamp descending for activity monitor (newest first)
+        mappedMessages.sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        )
+        
+        // Update messages only if there are changes
+        setDashboardMessages(prev => {
+          const prevIds = new Set(prev.map(msg => msg.id))
+          const newMessages = mappedMessages.filter(msg => !prevIds.has(msg.id))
+          if (newMessages.length > 0) {
+            return [...newMessages, ...prev].slice(0, 50) // Keep last 50 messages
+          }
+          return prev
+        })
+      } catch (error) {
+        clientLogger.error('Failed to fetch messages', { error, streamId }, 'ChatActivityMonitor')
+      }
     }
 
     fetchMessages() // Initial fetch
     const intervalId = setInterval(fetchMessages, 2000) // Poll every 2 seconds
 
     return () => {
-      console.log(
-        `[Polling CAM] Clearing interval for stream DB ID: ${streamId}`
-      )
+      console.log(`[Polling CAM] Clearing interval for stream DB ID: ${streamId}`)
       clearInterval(intervalId)
     }
-  }, [streamId, chatEnabled]) // Re-run if streamId or chatEnabled changes
+  }, [streamId, chatEnabled])
 
   const toggleMenu = (messageId: string) => {
     setOpenMenuId(openMenuId === messageId ? null : messageId)

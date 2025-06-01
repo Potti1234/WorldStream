@@ -137,10 +137,10 @@ export function StreamerList ({
             touchAction: isPulling ? 'none' : 'auto'
           }}
         >
-          {filteredStreamers.length > 0 ? (
-            filteredStreamers.map(streamer => (
+          {filteredStreamers && filteredStreamers.length > 0 ? (
+            filteredStreamers.map((streamer, index) => (
               <StreamerCard
-                key={streamer.id}
+                key={streamer.id || `streamer-${index}`}
                 streamer={streamer}
                 onSelectStreamer={onSelectStreamer}
               />
