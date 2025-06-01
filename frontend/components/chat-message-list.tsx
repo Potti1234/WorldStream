@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DollarSign } from 'lucide-react'
 import type { ChatMessage } from '@/app/types'
+import { useVerificationGuard } from '@/hooks/use-verification-guard'
 import {
   getAllMessagesForStream,
   // subscribeToMessages, // No longer used for polling display
@@ -49,6 +50,7 @@ export function ChatMessageList ({
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const isAtBottomRef = useRef(true) // Ref to track if user is at the bottom
+  const { withVerification } = useVerificationGuard()
 
   // Effect to scroll to bottom ONLY if the user was already at the bottom
   useEffect(() => {
@@ -111,6 +113,17 @@ export function ChatMessageList ({
   }, [streamId, messages]) // Add messages to dependency array
 
   // Removed the useEffect for subscribeToMessages/unsubscribeFromMessages as polling is now used for display
+
+  const handleTipClick = (message: ChatMessage) => {
+    withVerification(
+      () => handleTipComment(message),
+      {
+        onError: () => {
+          clientLogger.error('Verification failed for tip', { messageId: message.id }, 'ChatMessageList')
+        }
+      }
+    )
+  }
 
   return (
     <ScrollArea
@@ -220,7 +233,7 @@ export function ChatMessageList ({
                   variant='ghost'
                   size='icon'
                   className='h-8 w-8 flex-shrink-0 text-gray-500 hover:text-green-500 rounded-full'
-                  onClick={() => handleTipComment(msg)}
+                  onClick={() => handleTipClick(msg)}
                 >
                   <DollarSign className='w-4 h-4' />
                 </Button>

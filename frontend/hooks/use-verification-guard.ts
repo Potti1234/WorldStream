@@ -58,14 +58,16 @@ export const useVerificationGuard = () => {
     action: () => void,
     options: { onSuccess?: () => void; onError?: () => void } = {}
   ) => {
-    if (isVerified || typeof window !== 'undefined' && !window.matchMedia('(pointer:coarse)').matches && !window.matchMedia('(max-device-width: 480px)').matches) {
+    // If already verified or not on a mobile device, proceed without verification
+    if (isVerified || (typeof window !== 'undefined' && !window.matchMedia('(pointer:coarse)').matches && !window.matchMedia('(max-device-width: 480px)').matches)) {
       action();
+      options.onSuccess?.();
       return true;
     }
 
-    const username = MiniKit.user.username
+    // If not verified, proceed with verification
+    const username = MiniKit.user.username;
     clientLogger.info('MiniKit user', username, 'withVerification');
-
 
     const verified = await handleVerify();
     if (verified) {
@@ -82,3 +84,4 @@ export const useVerificationGuard = () => {
     isVerifying,
   };
 };
+
