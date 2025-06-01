@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { ArrowLeft, Settings } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
@@ -14,13 +14,11 @@ import {
 interface DashboardHeaderProps {
   isLive: boolean
   onToggleAppMode: () => void
-  onShowSettings: () => void
 }
 
 export function DashboardHeader ({
   isLive,
-  onToggleAppMode,
-  onShowSettings
+  onToggleAppMode
 }: DashboardHeaderProps) {
   return (
     <div className='sticky top-0 bg-white border-b border-gray-200 p-4 z-10'>
@@ -59,14 +57,6 @@ export function DashboardHeader ({
             {isLive ? 'LIVE' : 'OFFLINE'}
           </Badge>
         </div>
-        <Button
-          variant='ghost'
-          size='icon'
-          onClick={onShowSettings}
-          className='rounded-full'
-        >
-          <Settings className='h-5 w-5' />
-        </Button>
       </div>
     </div>
   )

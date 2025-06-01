@@ -4,14 +4,13 @@ import { useState, useEffect } from 'react'
 import { clientLogger } from '@/lib/client-logger'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
-import { Settings, Sparkles, Video, VideoOff, Edit, Save } from 'lucide-react'
+import { Sparkles, Edit, Save } from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { Slider } from '@/components/ui/slider'
 import { Input } from '@/components/ui/input'
 
 import { DashboardHeader } from './dashboard-header'
@@ -19,7 +18,6 @@ import { DashboardStats } from './dashboard-stats'
 import { ChatActivityMonitor } from './chat-activity-monitor'
 import { TipCommentModal } from './tip-comment-modal'
 import { SprinkleTipsModal } from './sprinkle-tips-modal'
-import { StreamSettingsView } from './stream-settings-view'
 import type { DashboardMessage } from '@/app/types'
 import { getStreamByTextId, Stream as ApiStream } from '@/lib/api-stream'
 
@@ -50,10 +48,8 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
   )
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [chatEnabled, setChatEnabled] = useState(true)
-  const [tipsEnabled, setTipsEnabled] = useState(true)
   const [viewerCount, setViewerCount] = useState(0)
   const [totalTips, setTotalTips] = useState(0)
-  const [showSettings, setShowSettings] = useState(false)
 
   const [streamerTipModalOpen, setStreamerTipModalOpen] = useState(false)
   const [selectedMessageForTip, setSelectedMessageForTip] =
@@ -240,24 +236,11 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     }, 1000)
   }
 
-  if (showSettings) {
-    return (
-      <StreamSettingsView
-        chatEnabled={chatEnabled}
-        setChatEnabled={setChatEnabled}
-        tipsEnabled={tipsEnabled}
-        setTipsEnabled={setTipsEnabled}
-        onClose={() => setShowSettings(false)}
-      />
-    )
-  }
-
   return (
     <div className='max-w-md mx-auto bg-white min-h-screen relative pb-32'>
       <DashboardHeader
         isLive={actuallyStreaming}
         onToggleAppMode={onToggleAppMode}
-        onShowSettings={() => setShowSettings(true)}
       />
 
       {/* Stream Title Section */}
@@ -319,7 +302,7 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         onDeleteMessage={handleDeleteMessage}
         onBanUser={handleBanUser}
         onTipComment={handleOpenTipCommentModal}
-        streamId={dashboardApiStream?.id}
+        streamId={dashboardApiStream?.streamId}
       />
 
       <div className='fixed bottom-4 left-1/2 transform -translate-x-1/2 flex justify-center w-[calc(100%-2rem)] max-w-md z-20'>
