@@ -4,6 +4,7 @@ import { VerificationProvider } from '@/contexts/verification-context'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { clientLogger } from '@/lib/client-logger'
+import { MiniKitProvider } from '@worldcoin/minikit-js/minikit-provider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -27,6 +28,7 @@ export default async function RootLayout ({
 }>) {
   return (
     <html lang='en'>
+      <MiniKitProvider>
       <VerificationProvider>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
@@ -35,6 +37,7 @@ export default async function RootLayout ({
           <Toaster />
         </body>
       </VerificationProvider>
+      </MiniKitProvider>
     </html>
   )
 }
