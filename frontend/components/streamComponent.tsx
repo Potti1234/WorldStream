@@ -183,7 +183,6 @@ const StreamComponent = ({
       if (webRTCAdaptor.current) {
         if (publishingStream.current) {
           webRTCAdaptor.current.stop(publishingStream.current)
-          handleDeleteStreamInternal(publishingStream.current)
           publishingStream.current = null
         }
         clientLogger.debug(

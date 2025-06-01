@@ -35,13 +35,16 @@ export const deleteStream = async (streamId: string): Promise<boolean> => {
     // Assuming streamId is unique, there should be at most one record
     const recordToDelete = records[0];
     if (!recordToDelete.id) {
-        clientLogger.error('Record ID is undefined, cannot delete', {}, 'deleteStream');
-        return false;
+      clientLogger.error('Record ID is undefined, cannot delete', {}, 'deleteStream');
+      return false;
     }
+
+    // Delete using the record's ID
     await pb.collection('stream').delete(recordToDelete.id);
+    clientLogger.info('Stream deleted successfully', { streamId, recordId: recordToDelete.id }, 'deleteStream');
     return true;
   } catch (error) {
-    clientLogger.error('Failed to delete stream', { error }, 'deleteStream');
+    clientLogger.error('Failed to delete stream', { error, streamId }, 'deleteStream');
     return false;
   }
 }; 

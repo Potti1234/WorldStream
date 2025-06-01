@@ -86,14 +86,19 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
         }
       } else {
         // Going offline - delete stream
-        if (dashboardApiStream?.id) {
-          await deleteStream(dashboardApiStream.id)
-          setDashboardApiStream(null)
+        if (dashboardApiStream?.streamId) {
+          clientLogger.info(`[StreamerDashboard] Deleting stream with ID: ${dashboardApiStream.streamId}`, 'StreamerDashboard')
+          const success = await deleteStream(dashboardApiStream.streamId)
+          if (success) {
+            setDashboardApiStream(null)
+          } else {
+            clientLogger.error('Failed to delete stream', { streamId: dashboardApiStream.streamId }, 'StreamerDashboard')
+          }
         }
       }
       setIsLive(!isLive)
     } catch (error) {
-      clientLogger.error('Failed to initialize stream for going live', { error, streamId: streamIdForComponent }, 'StreamerDashboard')
+      clientLogger.error('Failed to handle stream state change', { error, streamId: streamIdForComponent }, 'StreamerDashboard')
     }
   }
 
@@ -118,22 +123,35 @@ export function StreamerDashboard ({ onToggleAppMode }: StreamerDashboardProps) 
     activeStreamId: string | null
   ) => {
     setActuallyStreaming(isActuallyStreaming)
-    console.log(
-      `Dashboard: Stream status update: isActuallyStreaming=${isActuallyStreaming}, activeStreamId=${activeStreamId}`
-    )
+    clientLogger.debug('Stream status update', {
+      isActuallyStreaming,
+      activeStreamId,
+      intendedStreamId: streamIdForComponent
+    }, 'StreamerDashboard')
+
     if (isActuallyStreaming && activeStreamId !== streamIdForComponent) {
-      console.warn(
-        `Dashboard: Stream started with ID ${activeStreamId} which differs from intended ${streamIdForComponent}`
-      )
+      clientLogger.warn('Stream started with different ID than intended', {
+        actualId: activeStreamId,
+        intendedId: streamIdForComponent
+      }, 'StreamerDashboard')
     }
+
     if (!isActuallyStreaming && isLive) {
       setIsLive(false)
       // Clean up stream when actually stopped
-      if (dashboardApiStream?.id) {
-        deleteStream(dashboardApiStream.id).catch(error => {
-          clientLogger.error('Failed to delete stream', { error, streamId: dashboardApiStream.id }, 'StreamerDashboard')
-        })
-        setDashboardApiStream(null)
+      if (dashboardApiStream?.streamId) {
+        clientLogger.info(`[StreamerDashboard] Cleaning up stream with ID: ${dashboardApiStream.streamId}`, 'StreamerDashboard')
+        deleteStream(dashboardApiStream.streamId)
+          .then(success => {
+            if (success) {
+              setDashboardApiStream(null)
+            } else {
+              clientLogger.error('Failed to delete stream during cleanup', { streamId: dashboardApiStream.streamId }, 'StreamerDashboard')
+            }
+          })
+          .catch(error => {
+            clientLogger.error('Error deleting stream during cleanup', { error, streamId: dashboardApiStream.streamId }, 'StreamerDashboard')
+          })
       }
     }
   }
