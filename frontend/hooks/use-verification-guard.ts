@@ -58,13 +58,13 @@ export const useVerificationGuard = () => {
     action: () => void,
     options: { onSuccess?: () => void; onError?: () => void } = {}
   ) => {
-    if (isVerified) {
+    if (isVerified || typeof window !== 'undefined' && !window.matchMedia('(pointer:coarse)').matches && !window.matchMedia('(max-device-width: 480px)').matches) {
       action();
       return true;
     }
 
-    clientLogger.info('MiniKit user', MiniKit, 'withVerification');
     const username = MiniKit.user.username
+    clientLogger.info('MiniKit user', username, 'withVerification');
 
 
     const verified = await handleVerify();
