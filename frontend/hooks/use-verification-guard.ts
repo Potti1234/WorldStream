@@ -1,11 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MiniKit, VerifyCommandInput, VerificationLevel, ISuccessResult } from '@worldcoin/minikit-js'
 import { clientLogger } from '@/lib/client-logger'
 import { useVerification } from '@/contexts/verification-context'
 
+const VERIFICATION_STORAGE_KEY = 'worldstream_verified'
+
 export const useVerificationGuard = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const { isVerified, setIsVerified } = useVerification();
+
+  // Check localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedVerified = localStorage.getItem(VERIFICATION_STORAGE_KEY)
+      if (storedVerified === 'true') {
+        setIsVerified(true)
+      }
+    }
+  }, [setIsVerified])
 
   const verifyPayload: VerifyCommandInput = {
     action: 'verification',
@@ -41,6 +53,10 @@ export const useVerificationGuard = () => {
       if (verifyResponseJson.status === 200) {
         clientLogger.info('Verification success!', {}, 'handleVerify');
         setIsVerified(true);
+        // Store verification state in localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.setItem(VERIFICATION_STORAGE_KEY, 'true')
+        }
         return true;
       } else {
         clientLogger.error('Verification failed', {}, 'handleVerify');
@@ -58,6 +74,13 @@ export const useVerificationGuard = () => {
     action: () => void,
     options: { onSuccess?: () => void; onError?: () => void } = {}
   ) => {
+    // Check localStorage first
+    if (typeof window !== 'undefined' && localStorage.getItem(VERIFICATION_STORAGE_KEY) === 'true') {
+      action();
+      options.onSuccess?.();
+      return true;
+    }
+
     // If already verified or not on a mobile device, proceed without verification
     if (isVerified || (typeof window !== 'undefined' && !window.matchMedia('(pointer:coarse)').matches && !window.matchMedia('(max-device-width: 480px)').matches)) {
       action();
