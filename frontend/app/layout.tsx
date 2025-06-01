@@ -5,8 +5,6 @@ import { VerificationProvider } from '@/contexts/verification-context'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 import { clientLogger } from '@/lib/client-logger'
-import { auth } from '@/auth'
-import { SessionProvider } from 'next-auth/react'
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin']
@@ -27,7 +25,6 @@ export default async function RootLayout ({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await auth()
   return (
     <html lang='en'>
       <MiniKitProvider>
@@ -35,7 +32,7 @@ export default async function RootLayout ({
           <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased`}
           >
-            <SessionProvider session={session}>{children}</SessionProvider>
+            {children}
             <Toaster />
           </body>
         </VerificationProvider>
