@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { clientLogger } from '@/lib/client-logger'
 import { WebRTCAdaptor } from '@antmedia/webrtc_adaptor'
+import { Maximize2, Minimize2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 interface PlayingComponentProps {
   streamIdToPlay: string
@@ -22,8 +24,10 @@ const PlayingComponent = ({
 }: PlayingComponentProps) => {
   const [isActuallyPlaying, setIsActuallyPlaying] = useState(false)
   const [websocketConnected, setWebsocketConnected] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const webRTCAdaptor = useRef<WebRTCAdaptor | null>(null)
   const currentPlayingStreamId = useRef<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
 
   const onPlaybackStatusUpdateRef = useRef(onPlaybackStatusUpdate)
   useEffect(() => {
@@ -178,12 +182,36 @@ const PlayingComponent = ({
     }
   }, [videoElementId])
 
+  const toggleFullscreen = useCallback(() => {
+    if (!videoRef.current) return
+
+    if (!document.fullscreenElement) {
+      videoRef.current.requestFullscreen()
+      setIsFullscreen(true)
+    } else {
+      document.exitFullscreen()
+      setIsFullscreen(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement)
+    }
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
   return (
     <div
-      className='w-full bg-black flex justify-center items-center'
+      className='w-full bg-black flex justify-center items-center relative'
       style={{ minHeight: '30vh' }}
     >
       <video
+        ref={videoRef}
         id={videoElementId}
         autoPlay
         muted={false}
@@ -196,6 +224,18 @@ const PlayingComponent = ({
       >
         Your browser does not support the video tag.
       </video>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute bottom-4 right-4 bg-black/50 hover:bg-black/70 text-white"
+        onClick={toggleFullscreen}
+      >
+        {isFullscreen ? (
+          <Minimize2 className="h-5 w-5" />
+        ) : (
+          <Maximize2 className="h-5 w-5" />
+        )}
+      </Button>
     </div>
   )
 }
