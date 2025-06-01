@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { DollarSign, ArrowUp, Heart } from 'lucide-react'
 import { createMessage } from '@/lib/api-message'
 import type { Stream } from '@/lib/api-stream'
+import { useVerificationGuard } from '@/hooks/use-verification-guard'
 
 interface ChatInputAreaProps {
   onSendMessage: (message: string) => void
@@ -26,6 +27,8 @@ export function ChatInputArea ({
   const [message, setMessage] = useState('')
   const [tipAmount, setTipAmount] = useState('')
   const [showTipInput, setShowTipInput] = useState(false)
+  
+  const { withVerification } = useVerificationGuard()
 
   useEffect(() => {
     if (inputAreaRef.current) {
@@ -128,7 +131,17 @@ export function ChatInputArea ({
             <Button
               variant='outline'
               size='icon'
-              onClick={() => setShowTipInput(true)}
+              onClick={() => withVerification(
+                () => setShowTipInput(true),
+                {
+                  onSuccess: () => {
+                    console.log('Verification successful, showing tip input')
+                  },
+                  onError: () => {
+                    console.log('Verification failed')
+                  }
+                }
+              )}
               className='flex-shrink-0 rounded-full'
               disabled={!stream || !stream.id}
             >

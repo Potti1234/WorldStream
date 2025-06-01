@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { MiniKitProvider } from '@worldcoin/minikit-js/minikit-provider';
+import { VerificationProvider } from '@/contexts/verification-context';
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { clientLogger } from "@/lib/client-logger";
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,8 +40,9 @@ function ConditionalMiniKitProvider ({
       if (MiniKit && typeof MiniKit.isInstalled === 'function') {
         return <MiniKitProvider>{children}</MiniKitProvider>
       }
+      clientLogger.info('MiniKit not available', {}, 'ConditionalMiniKitProvider');
     } catch (error) {
-      console.debug('MiniKit not available', error)
+      clientLogger.error('Error while checking for MiniKit availability', error, 'ConditionalMiniKitProvider');
     }
   }
 
@@ -53,14 +57,16 @@ export default function RootLayout ({
 }>) {
   return (
     <html lang='en'>
-      <ConditionalMiniKitProvider>
+      <MiniKitProvider>
+        <VerificationProvider>
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children}
           <Toaster />
         </body>
-      </ConditionalMiniKitProvider>
+      </VerificationProvider>
+    </MiniKitProvider>
     </html>
   )
 }
