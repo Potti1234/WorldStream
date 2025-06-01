@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { ChatMessage } from '@/app/types'
+import { useMiniKit } from '@worldcoin/minikit-js/minikit-provider'
 
 interface TipCommentModalProps {
   isOpen: boolean
@@ -13,12 +14,12 @@ interface TipCommentModalProps {
 }
 
 // Safe function to send haptic feedback only if MiniKit is available
-const sendHapticFeedbackSafe = () => {
+const sendHapticFeedbackSafe = (isInstalled: boolean) => {
   if (typeof window === 'undefined') return
 
   try {
     const { MiniKit } = require('@worldcoin/minikit-js')
-    if (MiniKit && typeof MiniKit.isInstalled === 'function' && MiniKit.isInstalled()) {
+    if (isInstalled) {
       MiniKit.commands.sendHapticFeedback({
         hapticsType: 'impact',
         style: 'medium',
@@ -37,6 +38,7 @@ export function TipCommentModal ({
   onSubmitTip
 }: TipCommentModalProps) {
   const [commentTipAmount, setCommentTipAmount] = useState('')
+  const { isInstalled } = useMiniKit()
 
   if (!isOpen || !selectedMessage) return null
 
@@ -46,7 +48,7 @@ export function TipCommentModal ({
     if (isNaN(amount) || amount <= 0) return
 
     // Safely send haptic feedback if available
-    sendHapticFeedbackSafe()
+    sendHapticFeedbackSafe(isInstalled)
 
     onSubmitTip(selectedMessage.id, commentTipAmount)
     setCommentTipAmount('')
